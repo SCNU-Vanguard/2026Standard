@@ -1,0 +1,34 @@
+#CLion files
+*.idea/
+
+# VSCode files
+*.vscode/
+
+# Keil v5 files
+*.bak
+*.lst
+*.lnp
+*.obj
+*.tmp
+*.TMP
+*.__i
+*.crf
+*.o
+*.d
+*.axf
+*.dep
+*.uvopt
+*.htm
+*.hsc
+~*
+*uvgui*
+*.uvoptx
+*JLinkLog.txt
+*.dbgconf
+.vscode/tags
+*.hex
+*.lnk
+
+*.scvd
+*.iex
+*.ini
