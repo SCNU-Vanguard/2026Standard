@@ -2158,6 +2158,26 @@
               <FileType>5</FileType>
               <FilePath>..\algorithm\filter\kalman\kalman_filter.h</FilePath>
             </File>
+            <File>
+              <FileName>kalman_one_filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\algorithm\filter\kalman_one_filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>kalman_one_filter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\algorithm\filter\kalman_one_filter.h</FilePath>
+            </File>
+            <File>
+              <FileName>mahony_filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\algorithm\filter\mahony_filter.c</FilePath>
+            </File>
+            <File>
+              <FileName>mahony_filter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\algorithm\filter\mahony_filter.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

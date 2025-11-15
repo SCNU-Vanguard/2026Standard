@@ -64,16 +64,18 @@ extern const char Init_sound[];
 extern const char Err_sound[];
 extern const char Ready_sound[];
 extern const char Warming_sound[];
+extern const char Heartbeat_sound[];
+extern const char Super_Mario_sound[];
 
 void Buzzer_Register(void);
 
-void Buzzer_Play(const char *sound);
+void Buzzer_Play(const char *sound, uint8_t mode);
 
 void Buzzer_Stop(void);
 
 void Buzzer_Silence(void);
 
-void Buzzer_One_Note(uint16_t Note, float delay);
+void Buzzer_One_Note(uint16_t Note, float delay, uint8_t mode);
 
 void Buzzer_Task(void *argument);
 

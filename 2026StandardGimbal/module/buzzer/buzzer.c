@@ -49,11 +49,13 @@ const char RoboMaster_Prepare[] = "T140L8 O4aaO5cc O4g#g#aa O4aaO5cc O4g#g#aa O4
 // const char GuYongZhe[]          = "t65L4 <g+16>f+16g+8&g+32.r64g+16g+16f+16g+16f+16a+8&a+32.r64a+16a+16g+16a+8&a+32.r64g+8d+2&d+32r16.d+16f+16d+16c+8&c+32.r64d+16c+8&c+32.r64d+16c+8&c+32.r64d+16f+16d+16f+16d+16c+8&c+32.";
 // const char YongZheDouELong[]    = "t65L4 @4v10o5l8d4a4g2.fed4c<b->c<a>e4d1.a4>c4<b2.gfe4fga1&a1d4a4g2.fed4c<b->c<a>e4d1.";
 // const char DuoLaAMeng[]         = "t180l8 o6dc+<bab>c+dc+<bab>c+dc+<bab>c+dc+<ba4.>edc+c-c+dedc+c-c+dedc+c-c+dc+dd+e4.c-c+d<gababn73f+gagabef+gf+gadef+>ed+dc+c<ba+ag+gf+fe1&e2<a4>dd4f+b4f+a4.a4ba4f+g4f+e4.c-4ee4g>c+4c+<b4ag4gg4f+c-4c+4.de4.<ab>dc+del4<a.a>d8df+8bf+8a.ab8af+8gf+8e.c-e8eg8>c+.<ba8gg8f+e8c+.e.d<a8>f+e8dl8ef+gab4.b4agabl4a.ef+8g+e8a2.<b.a.ef+8g+e8a.a>e8ea8ag8b.a.g2.e.n73b8ab8ag2al8bf+2&f+ed1&d2>d4dc+4c+<b4ba4ab4b>c+4c+d4.<dc+de4<bb4.>e4<bb4.b4>c+d4c-e2.>d4dc+4c+<b4ba>def+4f+f+ef+g2&g<d<b4a+b4>dc+4dl4e.d2.d2.<a>d8df+8bf+8a.ab8af+8gf+8e.c-e8eg8>c+c+8<ba8gg8gf+8c-c+.d8e.l8<ab>dc+del4<a.a>d8df+8bf+8a.ab8af+8gf+8e.c-e8eg8>c+.<ba8gg8f+e8c+.e.d<a8>f+e8dl8ef+gab4.b4agabl4a.ef+8g+e8a2.<b.a.ef+8g+e8a.a>e8ea8ag8b.a.g2.e.n73b8ab8ag2al8bf+2&f+ed2.&d<ab>c+def+ff+d4<a>f+ff+d4<a>gf+ge4.<a4aa4.>gf+ge4<a>gf+ge4<a>f+gg+a4.a4aa4.ba+ba+ba+b4>c+d4<bag+ag+ag+a4>c+d4<a>c+cc+cc+cc+4dedc+d1&d2<<a4>dd4f+b4f+a4.a4ba4f+g4f+e4.c-4ee4g>c+4c+<b4ag4gg4f+c-4c+4.de4.<ab>dc+del4<a.a>d8df+8bf+8a.ab8af+8gf+8e.c-e8eg8>c+c+8<ba8gg8f+e8c+.e.d<a8>f+e8dl8ef+gab4.b4agabl4a.ef+8g+e8a2.<b.a.ef+8g+e8a.a>e8ea8ag8b.a.g2.e.n73b8ab8ag2ab8f+2&f+8e8d2.<de8f+a8>b.a.g2.e.n73b8ab8ag2al8bf+2&f+ed4.>d<af+d4de4f+gf+gf+4gf+4e4.ff+ff+f4f+l4ed2<b.b.>c+d8e.<b.b.>c+d8ed2.&d8d1&d1&d8&d64";
-const char Call_Airsupport_sound[] = "T120 L8 O4 d c g L4p a";
-const char Init_sound[]  = "T240L8 O5fgh";
-const char Err_sound[]   = "T120L8 O5c O4g O5c O4g O5c O4g";
-const char Ready_sound[]    = "T120L16 O5cde O6d 07h";
-const char Warming_sound[] = "T240 O6 L16 G L16 G L16 G P16 L8 G.";
+const char Call_Airsupport_sound[] = "T120 L8 O4 c d g L4p aaaaaaaaa";
+const char Init_sound[]            = "T240L8 O5fgh";
+const char Err_sound[]             = "T120L8 O5c O4g O5c O4g O5c O4g";
+const char Ready_sound[]           = "T120L16 O5cde O6d 07h";
+const char Warming_sound[]         = "T240 O6 L16 G L16 G L16 G P16 L8 G.";
+const char Heartbeat_sound[]       = "T240L16 O5c P16 c P16 c P16 c P16 c P16 c P16 c P16 c P16 c";
+const char Super_Mario_sound[]     = "T150L16 O5e e P16 e P16 c e P16 g P8p P8g P16c P16g P16e P16a P16b P8p P8b P16a# P16a P16g2 L4g L4c H8g H8e H8c H8d H4b L4g2";
 
 /**
  * @brief :  蜂鸣器注册
@@ -81,25 +83,6 @@ void Buzzer_Register(void)
 	buzzer_ins->note         = 0;
 	buzzer_ins->busy         = 0;
 	buzzer                   = buzzer_ins;
-}
-
-/**
- * @brief :  蜂鸣器播放
- * @param *sound 音乐字符串
- * @return  void
- */
-void Buzzer_Play(const char *sound)
-{
-	// 如果蜂鸣器未注册，则注册
-	if (buzzer == NULL)
-	{
-		Buzzer_Register( );
-	}
-	// if (buzzer->busy) return;
-	buzzer->sound      = sound;
-	buzzer->_next_tune = sound;
-	buzzer->busy       = 1;
-	osThreadResume(Buzzer_Handle); // 恢复线程
 }
 
 /**
@@ -431,7 +414,7 @@ void Buzzer_Silence(void)
  * @param delay 延时
  * @return  void
  */
-void Buzzer_One_Note(uint16_t Note, float delay)
+void Buzzer_One_Note(uint16_t Note, float delay, uint8_t mode)
 {
 	// 如果蜂鸣器未注册，则注册
 	if (buzzer == NULL)
@@ -447,7 +430,48 @@ void Buzzer_One_Note(uint16_t Note, float delay)
 #endif
 	buzzer_one_note_flag = 1;
 	buzzer_one_note_time = delay;
-	osThreadResume(Buzzer_Handle); // 恢复线程
+	if (mode == 1)
+	{
+		DWT_Delay(buzzer_one_note_time);
+		Buzzer_Silence( );
+		buzzer_one_note_flag = 0;
+	}
+	else
+	{
+		osThreadResume(Buzzer_Handle); // 恢复线程
+	}
+}
+
+/**
+ * @brief :  蜂鸣器播放
+ * @param *sound 音乐字符串
+ * @return  void
+ */
+void Buzzer_Play(const char *sound, uint8_t mode)
+{
+	// 如果蜂鸣器未注册，则注册
+	if (buzzer == NULL)
+	{
+		Buzzer_Register( );
+	}
+	// if (buzzer->busy) return;
+	buzzer->sound      = sound;
+	buzzer->_next_tune = sound;
+	buzzer->busy       = 1;
+
+	if (mode == 1)
+	{
+		do
+		{
+			string_handle( );
+			Buzzer_Silence( );
+		} while (buzzer->_repeat);
+		buzzer->busy = 0;
+	}
+	else
+	{
+		osThreadResume(Buzzer_Handle); // 恢复线程
+	}
 }
 
 /**

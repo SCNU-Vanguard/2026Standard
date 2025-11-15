@@ -70,12 +70,14 @@ typedef struct
 
 	uint8_t ins_flag;
 	/* data */
-}__attribute__((packed)) INS_behaviour_t;
+} INS_behaviour_t;
 
 typedef struct
 {
 	/* data */
 }__attribute__((packed)) INS_cmd_t;
+
+extern INS_behaviour_t INS;
 
 extern void INS_Data_Update(void);
 

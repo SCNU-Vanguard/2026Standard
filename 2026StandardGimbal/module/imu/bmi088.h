@@ -22,11 +22,11 @@
 #define IMU_READY_FLAG (1 << 0)
 
 // 陀螺仪校准数据，开启陀螺仪校准后可从INS中获取
-#define GYRO_X_OFFSET 0.00360078155f
-#define GYRO_Y_OFFSET 0.00109721895f
-#define GYRO_Z_OFFSET 0.00094577496f
-#define ACCEL_X_OFFSET -0.02846324f
-#define ACCEL_Y_OFFSET -0.08984510f
+#define GYRO_X_OFFSET 0.00380742783f//0.00360078155f
+#define GYRO_Y_OFFSET 0.00094958144f//0.00109721895f
+#define GYRO_Z_OFFSET 0.00107013353f//0.00094577496f
+#define ACCEL_X_OFFSET -0.0176774152f//-0.05333653f
+#define ACCEL_Y_OFFSET 0.318351865f//0.14770408f
 #define ACCEL_Z_OFFSET 0.0f
 #define G_NORM 9.85204792f // 重力加速度
 // 陀螺仪默认环境温度
@@ -146,5 +146,7 @@ uint8_t BMI088_Read_All(bmi088_instance_t *bmi088, bmi088_data_t *data_store);
 uint8_t BMI088_Acquire_IT_Status(bmi088_instance_t *bmi088);
 
 void BMI088_Temp_Control(bmi088_instance_t *bmi088);
+
+void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088);
 
 #endif /* __BMI088_H__ */

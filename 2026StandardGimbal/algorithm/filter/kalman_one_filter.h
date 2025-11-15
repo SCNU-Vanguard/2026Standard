@@ -22,9 +22,9 @@ typedef struct {
     float r;		// measure noise(error) convariance
     float p;		// estimated error convariance
     float gain;		// kalman gain
-} kalman_onw_filter_t;
+} kalman_one_filter_t;
 
-extern void Kalman_One_Init(kalman_onw_filter_t *state, float q, float r);
-extern float Kalman_One_Filter(kalman_onw_filter_t *state, float z_measure);
+extern void Kalman_One_Init(kalman_one_filter_t *state, float q, float r);
+extern float Kalman_One_Filter(kalman_one_filter_t *state, float z_measure);
 
 #endif /* __KALMAN_ONE_FILTER_H__ */

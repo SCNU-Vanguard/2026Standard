@@ -119,7 +119,7 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
 	WS2812_Control(ws2812_instance, GREEN_WS2812_COLOR);
-	Buzzer_Play(StartUP_sound);
+	Buzzer_Play(StartUP_sound, 0);
 	
   /* Infinite loop */
   for(;;)
@@ -127,7 +127,7 @@ void StartDefaultTask(void *argument)
 		beat++;
 		if((beat % 30000) == 0)
 		{
-			Buzzer_Play(Warming_sound);
+			Buzzer_Play(Warming_sound, 0);
 		}
     osDelay(1);
   }

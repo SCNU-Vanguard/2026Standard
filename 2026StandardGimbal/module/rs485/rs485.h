@@ -10,9 +10,9 @@ typedef struct
 {
     uint8_t frame_header;
     uint8_t chassis_mode;
-    int16_t delta_target_angle_yaw;
-    int16_t target_x_speed;
-    int16_t target_y_speed;
+    float delta_target_angle_yaw;
+    float target_x_speed;
+    float target_y_speed;
     float target_omega_speed;
     uint8_t frame_tailer;
     uint8_t check_sum;

@@ -68,9 +68,9 @@ PID_t chassis_6020_speed_pid = {
 };
 
 PID_t gimbal_4310_angle_pid = {
-    .kp = 30.0f,
+    .kp = 20.0f,
     .ki = 0.0f,
-    .kd = 600.0f,
+    .kd = 500.0f,
     .output_limit = 5.0f,
     .integral_limit = 0.0f,
     .dead_band = 0.0f,
@@ -78,7 +78,7 @@ PID_t gimbal_4310_angle_pid = {
 
 PID_t gimbal_4310_speed_pid = {
     .kp = 0.8f,
-    .ki = 0.002f,
+    .ki = 0.001f,
     .kd = 0.0f,
     .output_limit = 10.0f,
     .integral_limit = 10.0f,
@@ -665,9 +665,9 @@ float Chassis_Get_Actual_Omega(void)
 
 void Chassis_State_Machine(void)
 {
-    float target_x_speed = uart2_rx_message.target_x_speed * 0.005f;
-    float target_y_speed = uart2_rx_message.target_y_speed * 0.005f;
-    float target_omega_speed = uart2_rx_message.target_omega_speed * 3 * PI;
+    float target_x_speed = uart2_rx_message.target_x_speed;
+    float target_y_speed = uart2_rx_message.target_y_speed;
+    float target_omega_speed = uart2_rx_message.target_omega_speed;
     chassis_mode = uart2_rx_message.chassis_mode;
     if (init_count < 1000)
     {
@@ -682,7 +682,7 @@ void Chassis_State_Machine(void)
         chassis_mode_last = CHASSIS_MODE_STOP;
         break;
     case CHASSIS_MODE_MANUAL:
-        target_angle_yaw = target_angle_yaw + uart2_rx_message.delta_target_angle_yaw * 0.00002f;
+        target_angle_yaw = target_angle_yaw + uart2_rx_message.delta_target_angle_yaw;
 
         Chassis_Enable();
         Chassis_Resolving(target_x_speed, target_y_speed, target_omega_speed, target_angle_yaw);
