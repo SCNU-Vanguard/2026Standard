@@ -90,7 +90,7 @@ void INS_Init(void)
 	float init_quaternion[4] = {1, 0, 0, 0};
 	EKF_Quaternion_Init(init_quaternion);
 	// IMU_QuaternionEKF_Init(init_quaternion, 12, 0.005f, 1000000 * 15, 0.9998f, 0.005f);
-	IMU_QuaternionEKF_Init(init_quaternion, 12, 0.005f, 1000000 * 20, 0.9998f, 0.005f);
+	IMU_QuaternionEKF_Init(init_quaternion, 12, 0.005f, 1000000 * 20, 0.9999f, 0.005f);
 
 	INS.AccelLPF = 0.01f; // 加速度低通滤波系数
 }

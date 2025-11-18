@@ -682,8 +682,6 @@ void Chassis_State_Machine(void)
         chassis_mode_last = CHASSIS_MODE_STOP;
         break;
     case CHASSIS_MODE_MANUAL:
-        target_angle_yaw = target_angle_yaw + uart2_rx_message.delta_target_angle_yaw;
-
         Chassis_Enable();
         Chassis_Resolving(target_x_speed, target_y_speed, target_omega_speed, target_angle_yaw);
         DM_Motor_SetTar(gimbal_motor_yaw, target_angle_yaw);

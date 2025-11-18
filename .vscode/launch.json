@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Amane/Desktop/RoboMaster/2026Standard/2026StandardGimbal/application/gimbal",
-      "program": "c:/Users/Amane/Desktop/RoboMaster/2026Standard/2026StandardGimbal/application/gimbal/build/Debug/outDebug",
+      "cwd": "c:/Users/Amane/Desktop/RoboMaster/2026Standard/2026StandardChassis/application/chassis",
+      "program": "c:/Users/Amane/Desktop/RoboMaster/2026Standard/2026StandardChassis/application/chassis/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
