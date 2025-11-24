@@ -43,6 +43,7 @@ extern DJI_motor_instance_t *chassis_motor_direct_4;
 extern DM_motor_t *chassis_4310_instance;
 
 extern float target_angle_yaw;
+extern uint8_t chassis_mode;
 
 void Chassis_Init(void);
 void Chassis_Enable(void);

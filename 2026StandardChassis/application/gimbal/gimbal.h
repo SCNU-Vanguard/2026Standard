@@ -33,7 +33,7 @@ typedef struct
 
 // extern DJI_motor_instance_t *gimbal_motor_pitch;
 // extern DM_motor_t *gimbal_motor_yaw;
-// extern uint8_t gimbal_mode;
+extern uint8_t gimbal_mode;
 // extern uint8_t gimbal_mode_last;
 // extern float target_angle_pitch;
 // extern float target_angle_yaw;

@@ -13,7 +13,12 @@
 #define __SHOOT_H__
 
 #include <stdint.h>
+#include "DJI_motor.h"
+#include "rs485.h"
 
+
+#define SHOOT_MODE_STOP 0
+#define SHOOT_MODE_FIRE 1
 typedef struct 
 {
     /* data */
@@ -22,6 +27,15 @@ typedef struct
 typedef struct
 {
     /* data */
-}__attribute__((packed))shoot_cmd_t;    
+}__attribute__((packed))shoot_cmd_t;   
+
+extern uint8_t shoot_mode;
+extern uint8_t shoot_mode_last;
+
+void Shoot_Init(void);
+void Shoot_Enable(void);
+void Shoot_Stop(void);
+void Get_Shoot_Mode(void);
+void Shoot_State_Machine(void);
 
 #endif /* __SHOOT_H__ */

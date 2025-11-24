@@ -10,6 +10,7 @@ typedef struct
 {
     uint8_t frame_header;
     uint8_t chassis_mode;
+    uint8_t shoot_mode;
     float delta_target_angle_yaw;
     float target_x_speed;
     float target_y_speed;

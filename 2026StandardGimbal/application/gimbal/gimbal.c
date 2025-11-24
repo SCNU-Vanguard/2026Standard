@@ -30,7 +30,6 @@ float target_angle_yaw = 0;
 float angle_pitch = 0;
 float angle_pitch_motor = 0;
 float angle_yaw = 0;
-uint16_t init_count = 0;
 
 PID_t gimbal_6020_angle_pid = {
     .kp = 12.0f,
@@ -134,6 +133,8 @@ void Chassis_Control(void)
 
 void Gimbal_State_Machine(void)
 {
+    static uint16_t init_count = 0;
+
     angle_pitch = gimbal_motor_pitch->measure.rad;
     angle_pitch = -INS.Pitch;
     angle_yaw = INS.Yaw;

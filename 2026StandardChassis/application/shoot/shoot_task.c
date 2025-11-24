@@ -22,6 +22,9 @@
 
 #include "message_center.h"
 
+#include "DJI_motor.h"
+#include "remote_control.h"
+
 #define SHOOT_TASK_PERIOD 5 // ms
 
 osThreadId_t shoot_task_handel;
@@ -52,7 +55,7 @@ static void Shoot_Task( void *argument )
 
     for( ; ; )
     {
-
+        Shoot_State_Machine();
         shoot_task_diff = osKernelGetTickCount( ) - time;
         time = osKernelGetTickCount( );
         osDelayUntil( time + SHOOT_TASK_PERIOD );

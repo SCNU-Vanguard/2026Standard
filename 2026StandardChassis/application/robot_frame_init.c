@@ -65,6 +65,7 @@ static void Frame_Device_Init(void)
 	// BMI088_Init(&hspi2,0);
 	
 	Chassis_Init();
+    Shoot_Init();
 }
 
 static void Frame_Task_Init(void)
@@ -80,6 +81,8 @@ static void Frame_Task_Init(void)
 	   Buzzer_Task_Init( );
 
 	   Chassis_Task_Init( );
+
+	   Shoot_Task_Init( );
 
 	   INS_Task_Init( );
 

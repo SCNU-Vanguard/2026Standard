@@ -19,6 +19,7 @@
 
 #include "shoot_task.h" 
 #include "shoot.h"
+#include "gimbal.h"
 
 #include "message_center.h"
 
@@ -52,7 +53,9 @@ static void Shoot_Task( void *argument )
 
     for( ; ; )
     {
-
+        Get_Shoot_Mode();
+        Shoot_State_Machine();
+        
         shoot_task_diff = osKernelGetTickCount( ) - time;
         time = osKernelGetTickCount( );
         osDelayUntil( time + SHOOT_TASK_PERIOD );
