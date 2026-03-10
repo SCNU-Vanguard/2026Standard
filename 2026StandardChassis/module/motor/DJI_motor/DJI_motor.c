@@ -484,8 +484,8 @@ void DJI_Motor_Control(void)
         // 若该电机处于停止状态,直接将buff置零
         if (motor->motor_state_flag == MOTOR_DISABLE)
         {
-            PID_Init(motor_controller->angle_PID);
-            PID_Init(motor_controller->speed_PID);
+            PID_Clear(motor_controller->angle_PID);
+            PID_Clear(motor_controller->speed_PID);
             memset(sender_assignment[group].tx_buff + 2 * num, 0, sizeof(uint16_t));
         }
     }

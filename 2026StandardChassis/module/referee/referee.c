@@ -102,11 +102,11 @@ void RefereeSolve(uint8_t *data) //裁判系统的信息处理
 			break;
 
 	//0x300
-#ifndef USE_REMOTE_KEYBORAD
-	case ID_keyboard_information:
-			memcpy(&keyboard.keys, (data + Offset_data), LEN_keyboard_information);
-			break;
-#endif
+//#ifndef USE_REMOTE_KEYBORAD
+//	case ID_keyboard_information:
+//			memcpy(&keyboard.keys, (data + Offset_data), LEN_keyboard_information);
+//			break;
+//#endif
 	}
 
 	if(data[offset_frame_tail+2] == 0xA5)

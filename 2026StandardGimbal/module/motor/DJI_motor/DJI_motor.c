@@ -49,7 +49,7 @@ static CAN_instance_t sender_assignment[15] = {
 };
 
 /**
- * @brief 9个用于确认是否有电机注册到sender_assignment中的标志位,防止发送空帧,此变量将在DJIMotorControl()使用
+ * @brief 15个用于确认是否有电机注册到sender_assignment中的标志位,防止发送空帧,此变量将在DJIMotorControl()使用
  *        flag的初始化在 Motor_Sender_Grouping()中进行
  */
 static uint8_t sender_enable_flag[15] = {0};
@@ -98,27 +98,34 @@ static void Motor_Sender_Grouping(DJI_motor_instance_t *motor, can_init_config_t
         break;
 
     case GM6020:
-        if (motor_id < 4) // 根据ID分组
-        {
-            motor_send_num = motor_id;
-            motor_grouping = config->can_handle == &hfdcan1 ? 0 : (config->can_handle == &hfdcan2 ? 3 : 6);
-        }
-        else
-        {
-            motor_send_num = motor_id - 4;
-            motor_grouping = config->can_handle == &hfdcan1 ? 2 : (config->can_handle == &hfdcan2 ? 5 : 8);
-        }
 
-        // if (motor_id < 4)
-        // {
-        //     motor_send_num = motor_id;
-        //     motor_grouping = config->can_handle == &hfdcan1 ? 9 : (config->can_handle == &hfdcan2 ? 10 : 11);
-        // }
-        // else
-        // {
-        //     motor_send_num = motor_id - 4;
-        //     motor_grouping = config->can_handle == &hfdcan1 ? 12 : (config->can_handle == &hfdcan2 ? 13 : 14);
-        // }
+        // 电流控制
+        if (motor->control_6020_flag == ELECTRICITY)
+        {
+            if (motor_id < 4)
+            {
+                motor_send_num = motor_id;
+                motor_grouping = config->can_handle == &hfdcan1 ? 9 : (config->can_handle == &hfdcan2 ? 10 : 11);
+            }
+            else
+            {
+                motor_send_num = motor_id - 4;
+                motor_grouping = config->can_handle == &hfdcan1 ? 12 : (config->can_handle == &hfdcan2 ? 13 : 14);
+            }
+        }
+        else // 电压控制
+        {
+            if (motor_id < 4) // 根据ID分组
+            {
+                motor_send_num = motor_id;
+                motor_grouping = config->can_handle == &hfdcan1 ? 0 : (config->can_handle == &hfdcan2 ? 3 : 6);
+            }
+            else
+            {
+                motor_send_num = motor_id - 4;
+                motor_grouping = config->can_handle == &hfdcan1 ? 2 : (config->can_handle == &hfdcan2 ? 5 : 8);
+            }
+        }
 
         config->rx_id = 0x204 + motor_id + 1;   // 把ID+1,进行分组设置
         sender_enable_flag[motor_grouping] = 1; // 只要有电机注册到这个分组,置为1;在发送函数中会通过此标志判断是否有电机注册
@@ -191,7 +198,7 @@ static void Decode_DJI_Motor(CAN_instance_t *_instance)
     measure->total_angle = measure->total_round * 360 + measure->angle_single_round;
     measure->total_rad = (measure->total_ecd / 8192.0f) * 2 * PI;
     measure->speed = (measure->speed_aps / 180.0f * PI); // 转换为了rad/s
-    measure->angle = measure->ecd / 8192.0f * 360.0f; // 角度0~360°
+    measure->angle = measure->ecd / 8192.0f * 360.0f;    // 角度0~360°
     measure->rad = measure->ecd / 8192.0f * 2 * PI;
 
     DJI_Motor_Error_Detection(motor);
@@ -214,6 +221,8 @@ DJI_motor_instance_t *DJI_Motor_Init(motor_init_config_t *config)
     instance->motor_type = config->motor_type;                         // 6020 or 2006 or 3508
     instance->motor_settings = config->controller_setting_init_config; // 正反转,闭环类型等
     instance->motor_feedback = RAD;
+    //6020特殊控制标志位
+    instance->control_6020_flag = config->control_6020_flag;
 
     // motor controller init 电机控制器初始化
     instance->motor_controller.current_PID = PID_Init(config->controller_param_init_config.current_PID);
@@ -228,7 +237,7 @@ DJI_motor_instance_t *DJI_Motor_Init(motor_init_config_t *config)
     // 电机控制闭环时的前馈控制器或前馈控制量指针
     instance->motor_controller.torque_feedforward_ptr = config->controller_param_init_config.torque_feedforward_ptr;
     instance->motor_controller.speed_feedforward_ptr = config->controller_param_init_config.speed_feedforward_ptr;
-
+     
     // 后续增加电机前馈控制器(速度和电流)
 
     // 电机分组,因为至多4个电机可以共用一帧CAN控制报文
@@ -390,81 +399,97 @@ void DJI_Motor_Control(void)
         {
             pid_ref *= -1; // 目标值设置反转
         }
-        // pid_ref会顺次通过被启用的闭环充当数据的载体
-        // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
-        if ((motor_setting->close_loop_type & ANGLE_LOOP) && motor_setting->outer_loop_type == ANGLE_LOOP)
-        {
-            if (motor_setting->angle_feedback_source == OTHER_FEED)
-            {
-                pid_fab = *motor_controller->other_angle_feedback_ptr;
-            }
-            else
-            {
-                if (motor->motor_feedback == ORIGIN)
-                {
-                    pid_fab = receive_data->total_ecd;
-                }
-                else if (motor->motor_feedback == RAD)
-                {
-                    pid_fab = receive_data->rad;
-                }
-                else if (motor->motor_feedback == DEGREE)
-                {
-                    // pid_fab = receive_data->total_angle; // MOTOR_FEED,对total angle闭环,防止在边界处出现突跃
-                    pid_fab = receive_data->angle;
-                }
-            }
-            // 更新pid_ref进入下一个环
-            pid_ref = PID_Position(motor_controller->angle_PID,
-                                   pid_fab,
-                                   pid_ref);
-        }
 
-        // 计算速度环,(外层闭环为速度或位置)且(启用速度环)时会计算速度环
-        if ((motor_setting->close_loop_type & SPEED_LOOP) && (motor_setting->outer_loop_type & (ANGLE_LOOP | SPEED_LOOP)))
-        {
-            if (motor_setting->feedforward_flag & SPEED_FEEDFORWARD)
+        if (motor->motor_settings.control_button == POLYCYCLIC_LOOP_CONTROL)
+		{
+            // pid_ref会顺次通过被启用的闭环充当数据的载体
+            // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
+            if ((motor_setting->close_loop_type & ANGLE_LOOP) && motor_setting->outer_loop_type == ANGLE_LOOP)
             {
-                pid_ref += *motor_controller->speed_feedforward_ptr;
-            }
-            if (motor_setting->speed_feedback_source == OTHER_FEED)
-            {
-                pid_fab = *motor_controller->other_speed_feedback_ptr;
-            }
-            else
-            {
-                if (motor->motor_feedback == ORIGIN)
+                if (motor_setting->angle_feedback_source == OTHER_FEED)
                 {
-                    pid_fab = receive_data->speed;
+                    pid_fab = *motor_controller->other_angle_feedback_ptr;
                 }
-                else if (motor->motor_feedback == RAD)
+                else
                 {
-                    pid_fab = receive_data->speed;
+                    if (motor->motor_feedback == ORIGIN)
+                    {
+                        pid_fab = receive_data->total_ecd;
+                    }
+                    else if (motor->motor_feedback == RAD)
+                    {
+                        pid_fab = receive_data->rad;
+                    }
+                    else if (motor->motor_feedback == DEGREE)
+                    {
+                        // pid_fab = receive_data->total_angle; // MOTOR_FEED,对total angle闭环,防止在边界处出现突跃
+                        pid_fab = receive_data->angle;
+                    }
                 }
-                else if (motor->motor_feedback == DEGREE)
-                {
-                    pid_fab = receive_data->speed_aps;
-                }
-            }
-            // 更新pid_ref进入下一个环
-            pid_ref = PID_Increment(motor_controller->speed_PID,
+                // 更新pid_ref进入下一个环
+                pid_ref = PID_Position(motor_controller->angle_PID,
                                     pid_fab,
                                     pid_ref);
-        }
+            }
 
-        // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
-        if (motor_setting->feedforward_flag & TORQUE_FEEDFORWARD)
-        {
-            pid_ref += *motor_controller->torque_feedforward_ptr;
-        }
-        if (motor_setting->close_loop_type & TORQUE_LOOP)
-        {
-            // 采用何种pid需要自己抉择
-            pid_ref = PID_Position(motor_controller->torque_PID,
-                                   receive_data->real_current,
-                                   pid_ref);
-        }
+            // 计算速度环,(外层闭环为速度或位置)且(启用速度环)时会计算速度环
+            if ((motor_setting->close_loop_type & SPEED_LOOP) && (motor_setting->outer_loop_type & (ANGLE_LOOP | SPEED_LOOP)))
+            {
+                if (motor_setting->feedforward_flag & SPEED_FEEDFORWARD)
+                {
+                    pid_ref += *motor_controller->speed_feedforward_ptr;
+                }
+                if (motor_setting->speed_feedback_source == OTHER_FEED)
+                {
+                    pid_fab = *motor_controller->other_speed_feedback_ptr;
+                }
+                else
+                {
+                    if (motor->motor_feedback == ORIGIN)
+                    {
+                        pid_fab = receive_data->speed;
+                    }
+                    else if (motor->motor_feedback == RAD)
+                    {
+                        pid_fab = receive_data->speed;
+                    }
+                    else if (motor->motor_feedback == DEGREE)
+                    {
+                        pid_fab = receive_data->speed_aps;
+                    }
+                }
+                // 更新pid_ref进入下一个环
+                pid_ref = PID_Increment(motor_controller->speed_PID,
+                                        pid_fab,
+                                        pid_ref);
+            }
 
+            // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
+            if (motor_setting->feedforward_flag & TORQUE_FEEDFORWARD)
+            {
+                pid_ref += *motor_controller->torque_feedforward_ptr;
+            }
+
+            if (motor_setting->close_loop_type & TORQUE_LOOP)
+            {
+                // 采用何种pid需要自己抉择
+                pid_ref = PID_Position(motor_controller->torque_PID,
+                                    receive_data->real_current,
+                                    pid_ref);
+            }
+        }
+        else
+		{
+                // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
+                if (motor_setting->feedforward_flag & TORQUE_FEEDFORWARD)
+                {
+                    pid_ref += *motor_controller->torque_feedforward_ptr;
+                }
+
+				pid_ref = pid_ref * 1.0f / 2.223f * 16384.0f; // 电流控制阈值换算,将力矩控制阈值换算为电流控制阈值,从而达到在力矩控制模式下也能使用电流环进行保护的目的
+        
+        }
+        
         if (motor_setting->feedback_reverse_flag == FEEDBACK_DIRECTION_REVERSE)
         {
             pid_ref *= -1; // 输出值设置反转
@@ -472,7 +497,7 @@ void DJI_Motor_Control(void)
 
         /* ------------------------------handler------------------------------------*/
         // 获取最终输出
-        motor->target.current = (int16_t)pid_ref - 1000;
+        motor->target.current = (int16_t)pid_ref; //- 1000;
 
         // 分组填入发送数据
         group = motor->sender_group;

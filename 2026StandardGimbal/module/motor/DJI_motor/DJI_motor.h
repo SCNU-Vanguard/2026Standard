@@ -73,6 +73,8 @@ typedef struct
     motor_working_type_e motor_state_flag;              // 启停标志
     motor_error_detection_type_e motor_error_detection; // 异常检测
 
+    motor_inter_control_loop_e control_6020_flag; // 6020电机特殊控制标志
+
     DJI_motor_callback_t measure;   // 电机测量值
     DJI_motor_fillmessage_t target; // 电机设定值
     DJI_motor_feedback_data_e motor_feedback;

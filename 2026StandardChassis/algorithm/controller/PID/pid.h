@@ -31,9 +31,11 @@ typedef struct
 	float kp;
 	float ki;
 	float kd;
+	float kf;
 
 	float output_limit;
 	float integral_limit;     // 积分限幅
+	float fout_limit;
 	float dead_band;
 
 	//-----------------------------------
@@ -50,6 +52,7 @@ typedef struct
 	float i_term;
 	float i_out;
 	float d_out;
+	float f_out;
 
 	float output;
 	float last_output;
@@ -98,6 +101,9 @@ float PID_Position(PID_t *pid, float measure, float target);
  */
 
 float PID_Increment(PID_t *pid, float measure, float target);
+
+void PID_Clear(PID_t *pid);
+
 float Value_Limit(float value, float min, float max);
 
 #endif /* __PID_H__ */

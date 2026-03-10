@@ -15,6 +15,8 @@ typedef struct
     float target_x_speed;
     float target_y_speed;
     float target_omega_speed;
+    float INS_yaw;
+    float INS_Gyro_Z;
     uint8_t frame_tailer;
     uint8_t check_sum;
 } __attribute__((packed)) Tx_packed_t;
@@ -23,8 +25,6 @@ typedef struct
 {
     uint8_t frame_header;
     float gimbal_angle_yaw_motor2imu;
-    float abs_yaw;
-    float yaw_zero_offset;
     float yaw_vel;
     uint8_t frame_tailer;
     uint8_t check_sum;

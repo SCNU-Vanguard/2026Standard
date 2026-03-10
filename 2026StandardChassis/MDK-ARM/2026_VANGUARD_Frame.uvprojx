@@ -1962,6 +1962,11 @@
           <GroupName>module</GroupName>
           <Files>
             <File>
+              <FileName>message_center.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\module\message_center\message_center.h</FilePath>
+            </File>
+            <File>
               <FileName>defense_center.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\module\defense_center\defense_center.c</FilePath>
@@ -1975,11 +1980,6 @@
               <FileName>message_center.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\module\message_center\message_center.c</FilePath>
-            </File>
-            <File>
-              <FileName>message_center.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\module\message_center\message_center.h</FilePath>
             </File>
             <File>
               <FileName>ws2812.c</FileName>

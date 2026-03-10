@@ -72,7 +72,7 @@ static void DWT_System_Time_Update(void)
 	system_time.s  = CNT_TEMP1;
 	system_time.ms = CNT_TEMP2 / CPU_frequency_ms;
 	CNT_TEMP3      = CNT_TEMP2 - system_time.ms * CPU_frequency_ms;
-	system_time.us = CNT_TEMP3 / CPU_frequency_us;
+ 	system_time.us = CNT_TEMP3 / CPU_frequency_us;
 }
 
 // 获取秒（float）

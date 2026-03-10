@@ -99,45 +99,52 @@ typedef struct
 /*导航的发送结构体aim to nuc*/   //(导航与TJ视觉合并包)
 typedef struct
 {
-  // Part 1: 导航发送部分 (38 字节)
-    uint8_t nav_header;//0x5A;
-    float imu_yaw;
-    float imu_pitch;
-    float joint_yaw;
-    float joint_pitch;
+  uint8_t header;           // 0x5A
+ uint8_t detect_color : 1; // 0-red 1-blue
+ uint8_t task_mode : 2;    // 0-auto 1-aim 2-buff
+ bool reset_tracker : 1;
+ uint8_t is_play : 1;  
+ uint8_t change_target : 1;  //切换目标
+ uint8_t reserve : 2;  //预留位
 
-    // Part 2: 视觉发送部分 (43 字节)
-    uint8_t vis_head[2];//{'S', 'P'};
-    uint8_t vis_mode;  //1
-    float q[4]; // wxyz
-    float vis_yaw;
-    float vis_yaw_vel;
-    float vis_pitch;
-    float vis_pitch_vel;
-    float vis_bullet_speed;
-    uint16_t vis_bullet_count; //0
-    uint16_t checksum;
+  float imu_yaw;
+  float imu_pitch;
+
+  float joint_yaw;
+  float joint_pitch;
+  
+  uint16_t aim_x;
+  uint16_t aim_y;
+  uint16_t aim_z;
+  
+  uint16_t timestamp; // (ms) board time
+  uint16_t robot_hp;
+  uint16_t game_time; // (s) game time [0, 450]
+  uint16_t checksum;
 
 } __attribute__((packed)) nv_send_packet_t;
 
 /*导航的接收结构体aim from nuc*/   //(导航与TJ视觉合并包)
 typedef struct
 {
-  // Part 1: 导航接收部分
-    uint8_t nav_header;//0xA5;
-    float nav_vx;
-    float nav_vy;
-    
-    // Part 2: 视觉接收部分
-    uint8_t head_vis[2];//{'S', 'P'};
-    uint8_t mode_vis;
-    float vis_yaw;
-    float vis_yaw_vel;
-    float vis_yaw_acc;
-    float vis_pitch;
-    float vis_pitch_vel;
-    float vis_pitch_acc;
-    uint16_t checksum;
+  uint8_t header; // 0xA5   帧头
+
+  uint8_t state : 2;      // 0-untracking 1-tracking-aim 2-tracking-buff
+  uint8_t id : 3;         // aim: 0-outpost 6-guard 7-base
+  uint8_t armors_num : 3; // 2-balance 3-outpost 4-normal
+  // uint8_t reserved : 1;
+  float yaw;
+  float pitch;
+  float yaw_diff;
+  float pitch_diff;
+
+  int fire_advice;
+
+  float vx; // x轴速度指令
+  float vy; // y轴速度指令
+  //uint8_t posture; // 0-移动姿态 1-进攻姿态 2-防御姿态
+
+  uint16_t checksum;
 } __attribute__((packed)) nv_receive_packet_t;
 
 

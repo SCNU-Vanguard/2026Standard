@@ -134,7 +134,7 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4099</DriverSelection>
+            <DriverSelection>4096</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
@@ -314,7 +314,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>5</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -2368,6 +2368,16 @@
               <FileName>lpf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\algorithm\filter\LPF\lpf.h</FilePath>
+            </File>
+            <File>
+              <FileName>digital_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\algorithm\controller\PID\digital_pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>digital_pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\algorithm\controller\PID\digital_pid.h</FilePath>
             </File>
           </Files>
         </Group>

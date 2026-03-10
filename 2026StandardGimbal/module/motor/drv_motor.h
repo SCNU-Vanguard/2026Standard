@@ -37,6 +37,12 @@ typedef enum
 	INCR = 1
 } motor_reference_e;
 
+typedef enum
+{
+    VOLTAGE = 0,
+    ELECTRICITY = 1,
+} motor_inter_control_loop_e;
+
 /* 电机控制器,包括其他来源的反馈数据指针,3环控制器和电机的参考输入*/
 // 后续增加前馈数据指针
 typedef struct
@@ -56,6 +62,13 @@ typedef struct
 
 	float pid_ref; // 将会作为每个环的输入和输出顺次通过串级闭环
 } motor_controller_t;
+
+/* 电机控制方式枚举 */
+typedef enum
+{
+	POLYCYCLIC_LOOP_CONTROL = 0,  //多环嵌套闭合控制
+	TORQUE_DIRECT_CONTROL   = 1, //扭矩直接开环控制
+} motor_control_button_e;
 
 /**
  * @brief 闭环类型,如果需要多个闭环,则使用或运算
@@ -150,6 +163,7 @@ typedef struct
 {
 	closeloop_type_e outer_loop_type;    		// 最外层的闭环,未设置时默认为最高级的闭环
 	closeloop_type_e close_loop_type;             // 使用几个闭环(串级)
+	motor_control_button_e control_button;
 
 	motion_reverse_flag_e motor_reverse_flag;             // 电机转向是否反转(不改变原数据)
 	feedback_reverse_flag_e feedback_reverse_flag;        // 反馈数据是否反向(不改变原数据)
@@ -166,6 +180,7 @@ typedef struct
 	motor_controller_t controller_param_init_config;
 	motor_control_setting_t controller_setting_init_config;
 	motor_type_e motor_type;
+	motor_inter_control_loop_e control_6020_flag;
 	can_init_config_t can_init_config;
 	motor_control_type_e motor_control_type;  //控制类型
 } motor_init_config_t;

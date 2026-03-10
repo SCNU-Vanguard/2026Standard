@@ -121,5 +121,6 @@ typedef struct
 RC_ctrl_t *Remote_Control_Init(UART_HandleTypeDef *rc_usart_handle);
 
 uint8_t Remote_Control_Is_Online(void);
+extern void Update_Chassis_Gear(void);
 
 #endif /* __REMOTE_CONTROL_H__ */

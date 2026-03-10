@@ -20,19 +20,21 @@
 #define BMI088_Cali 0
 
 bmi088_init_config_t bmi088_init_h7 = {
-    .heat_pid_config = {
-        .kp = 80.0f,
-        .ki = 0.5f,
-        .kd = 0,
-        .integral_limit = 200.0f,
-        .output_limit = 2000.0f,
-    },
-    .heat_pwm_config = {
-        .htim = &htim3,
-        .channel = TIM_CHANNEL_4,
-        .dutyratio = 0,
-        .period = 5000 - 1,
-    },
+	.heat_pid_config = {
+		.kp = 0.01f,
+		.ki = 0.0005f,
+		.kd = 0,
+		.dead_band = 0.0f,
+		.integral_limit = 0.025f,
+		.output_limit = 0.025f,
+	},
+
+	.heat_pwm_config = {
+		.htim = &htim3,
+		.channel = TIM_CHANNEL_4,
+		.dutyratio = 0.0f,
+		.period = 20000 - 1,
+	},
 
     .spi_acc_config = {
         .GPIOx = GPIOC,
@@ -80,33 +82,36 @@ bmi088_init_config_t bmi088_init_h7 = {
 #endif
 };
 
-bmi088_instance_t *bmi088_h7 = NULL;
-SPI_HandleTypeDef *BMI088_SPI = &hspi2;
+#define BMI088_USE_FILTER 1
 
-// ---------------------------原始数据滤波选择--------------------------------//
-#define BMI088_USE_KALMAN_FILTER 1
-
-#if BMI088_USE_KALMAN_FILTER
+#if BMI088_USE_FILTER == 1
 
 #include "kalman_one_filter.h"
-float test_data_acc[3] = {0};
-float test_data_gyro[3] = {0};
 kalman_one_filter_t acc_kf[3];
 kalman_one_filter_t gyro_kf[3];
-
 static void BMI088_Kalman_Filter_Init(void)
 {
-    for (uint8_t i = 0; i < 3; i++)
-    {
-        Kalman_One_Init(&acc_kf[i], 0.01f, 200.0f); // 加速度卡尔曼滤波器初始化
-        Kalman_One_Init(&gyro_kf[i], 0.01f, 20.0f); // 陀螺仪卡尔曼滤波器初始化
-    }
+	for (uint8_t i = 0 ; i < 3 ; i++)
+	{
+		Kalman_One_Init(&acc_kf[i], 0.01f, 1.0f);  // 加速度卡尔曼滤波器初始化
+		Kalman_One_Init(&gyro_kf[i], 0.01f, 1.0f); // 陀螺仪卡尔曼滤波器初始化
+	}
+}
+#endif
+
+#if BMI088_USE_FILTER
+
+static void BMI088_Filter_Init(void)
+{
+#if BMI088_USE_FILTER == 1
+	BMI088_Kalman_Filter_Init( );
+#endif
 }
 
 #endif
 
-// ---------------------------原始数据滤波选择--------------------------------//
-
+bmi088_instance_t *bmi088_h7 = NULL;
+SPI_HandleTypeDef *BMI088_SPI = &hspi2;
 // ---------------------------以下私有函数,用于读写BMI088寄存器封装,blocking--------------------------------//
 #if BMI088_BSP_COM
 #else
@@ -483,51 +488,6 @@ static uint8_t BMI088_Gyro_Init(bmi088_instance_t *bmi088)
 
 // -------------------------以上为私有函数,用于初始化BMI088acc和gyro的硬件和配置--------------------------------//
 
-/**
- * @brief          控制bmi088的温度
- * @param[in]      temp:bmi088的温度
- * @retval         none
- */
-void BMI088_Temp_Control(bmi088_instance_t *bmi088)
-{
-    static uint8_t temp_constant_time = 0;
-    static uint8_t first_temperate = 0; // 第一次达到设定温度
-    static float target_temp = 0;
-    target_temp = bmi088->ambient_temperature + 10; // 推荐比环境温度高10度
-    if (target_temp > 45.0f)
-        target_temp = 45.0f; // 限制在45度以内
-
-    if (first_temperate)
-    {
-        PID_Position(bmi088->heat_pid, target_temp, bmi088->temperature);
-        // 限制在正数范围
-        if (bmi088->heat_pid->output < 0.0f)
-        {
-            bmi088->heat_pid->output = 0.0f;
-        }
-        if (bmi088->heat_pid->i_out < 0)
-        {
-            bmi088->heat_pid->i_out = 0;
-        }
-        PWM_Set_DutyRatio(bmi088->heat_pwm, bmi088->heat_pid->output);
-    }
-    else
-    {
-        // 在没有达到设置的温度-4，一直最大功率加热
-        PWM_Set_DutyRatio(bmi088->heat_pwm, 0.95f);
-        if (bmi088->temperature > target_temp - 4)
-        {
-            temp_constant_time++;
-            if (temp_constant_time > 200)
-            {
-                // 达到设置温度，设置积分项，加速收敛
-                first_temperate = 1;
-                bmi088->heat_pid->i_out = 0.05f;
-            }
-        }
-    }
-}
-
 // -------------------------以下为私有函数,private用于IT模式下的中断处理---------------------------------//
 
 static void BMI088_Accel_SPI_Finish_Callback(SPI_instance_t *spi)
@@ -557,7 +517,6 @@ static void BMI088_Accel_SPI_Finish_Callback(SPI_instance_t *spi)
         {
             bmi088->ambient_temperature = bmi088->temperature;
         }
-        BMI088_Temp_Control(bmi088);
         callback_time = 0;
     }
     callback_time++;
@@ -577,8 +536,6 @@ static void BMI088_Gyro_SPI_Finish_Callback(SPI_instance_t *spi)
     // 有尝试调低速率，但是这样加速度计中断在开机几秒后便无法触发，原因未知
     ///@todo 找到原因降低速率，使数据恢复正常，可能原因是初始化需要较低的速率，之后可以拉满
     // 下面的函数用于过滤错误数据,无法完全过滤
-    // 寄完了
-
     // begin
     for (uint8_t i = 0; i < 3; i++)
     {
@@ -653,66 +610,75 @@ uint8_t BMI088_Read_All(bmi088_instance_t *bmi088, bmi088_data_t *data_store)
         for (uint8_t i = 0; i < 3; i++)
         {
             raw_temp = (float)(int16_t)(((buf[2 * i + 1]) << 8) | buf[2 * i]);
-#if BMI088_USE_KALMAN_FILTER
-            data_store->acc[i] = raw_temp;
+#if BMI088_USE_FILTER
+			data_store->acc[i] = raw_temp;
 #else
-            if (bmi088->cali_mode == BMI088_CALIBRATE_ONLINE_MODE)
+            // if(i == 2)
+            // {
+            // 	data_store->acc[i] = bmi088->BMI088_ACCEL_SEN * raw_temp * bmi088->accel_scale * 0.75f + bmi088->acc[i] * 0.25f;
+            // }
+            // else
+            // {
+            //  data_store->acc[i] = (bmi088->BMI088_ACCEL_SEN * raw_temp * bmi088->accel_scale - bmi088->acc_offset[i]) * 0.75f + bmi088->acc[i] * 0.25f;
+            // }
+            if (i == 2)
             {
-                data_store->acc[i] = bmi088->BMI088_ACCEL_SEN * raw_temp;
+                data_store->acc[i] = bmi088->BMI088_ACCEL_SEN * raw_temp * bmi088->accel_scale;
             }
             else
             {
-                data_store->acc[i] = (bmi088->BMI088_ACCEL_SEN * raw_temp * bmi088->accel_scale - bmi088->acc_offset[i]) * 0.75f + bmi088->acc[i] * 0.25f;
+                data_store->acc[i] = bmi088->BMI088_ACCEL_SEN * raw_temp * bmi088->accel_scale - bmi088->acc_offset[i];
             }
-#endif
+#endif            
         }
 
         BMI088_Gyro_Read(bmi088, BMI088_GYRO_X_L, buf, 6); // 连续读取3个(3*2=6)轴的角速度
         for (uint8_t i = 0; i < 3; i++)
-        {
-            raw_temp = (float)(int16_t)(((buf[2 * i + 1]) << 8) | buf[2 * i]);
-#if BMI088_USE_KALMAN_FILTER
-            data_store->gyro[i] = raw_temp;
+        {           
+            // data_store->gyro[i] = (bmi088->BMI088_GYRO_SEN * (float) (int16_t) (((buf[2 * i + 1]) << 8) | buf[2 * i]) * bmi088->accel_scale - bmi088->gyro_offset[i]) * 0.9f + bmi088->gyro[i] * 0.1f;
+            data_store->gyro[i] = bmi088->BMI088_GYRO_SEN * (float)(int16_t)(((buf[2 * i + 1]) << 8) | buf[2 * i]) * bmi088->accel_scale - bmi088->gyro_offset[i];
+			
+            raw_temp = (float) (int16_t) (((buf[2 * i + 1]) << 8) | buf[2 * i]);
+#if BMI088_USE_FILTER
+			data_store->gyro[i] = raw_temp;
 #else
-            if (bmi088->cali_mode == BMI088_CALIBRATE_ONLINE_MODE)
-            {
-                data_store->gyro[i] = bmi088->BMI088_GYRO_SEN * raw_temp;
-            }
-            else
-            {
-                data_store->gyro[i] = (bmi088->BMI088_GYRO_SEN * raw_temp) - bmi088->gyro_offset[i];
-            }
-#endif
+			if (bmi088->cali_mode == BMI088_CALIBRATE_ONLINE_MODE)
+			{
+				data_store->gyro[i] = bmi088->BMI088_GYRO_SEN * raw_temp;
+			}
+			else
+			{
+				data_store->gyro[i] = (bmi088->BMI088_GYRO_SEN * raw_temp) - bmi088->gyro_offset[i];
+			}
+#endif        
         }
 
         BMI088_Accel_Read(bmi088, BMI088_TEMP_M, buf, 2); // 读温度,温度传感器在accel上
 
         data_store->temperature = (float)((int16_t)((buf[0] << 3) | (buf[1] >> 5))) * BMI088_TEMP_FACTOR + BMI088_TEMP_OFFSET;
+        
         // 更新BMI088自身结构体数据
         for (uint8_t i = 0; i < 3; i++)
         {
-#if BMI088_USE_KALMAN_FILTER
-            //			bmi088->acc[i] = data_store->acc[i];
-            //			bmi088->gyro[i] = data_store->gyro[i];
-            //			test_data_acc[i]  = Kalman_One_Filter(&acc_kf[i], data_store->acc[i]);
-            //			test_data_gyro[i] = Kalman_One_Filter(&gyro_kf[i], data_store->gyro[i]);
-            bmi088->acc[i] = Kalman_One_Filter(&acc_kf[i], data_store->acc[i]);
-            bmi088->gyro[i] = Kalman_One_Filter(&gyro_kf[i], data_store->gyro[i]);
-            if (bmi088->cali_mode == BMI088_CALIBRATE_ONLINE_MODE)
-            {
-                bmi088->acc[i] = bmi088->BMI088_ACCEL_SEN * bmi088->acc[i];
-                bmi088->gyro[i] = bmi088->BMI088_GYRO_SEN * bmi088->gyro[i];
-            }
-            else
-            {
-                bmi088->acc[i] = bmi088->BMI088_ACCEL_SEN * bmi088->acc[i] * bmi088->accel_scale - bmi088->acc_offset[i];
-                bmi088->gyro[i] = bmi088->BMI088_GYRO_SEN * bmi088->gyro[i] - bmi088->gyro_offset[i];
-            }
-            data_store->acc[i] = bmi088->acc[i];
-            data_store->gyro[i] = bmi088->gyro[i];
+#if BMI088_USE_FILTER      
+			bmi088->acc[i]  = Kalman_One_Filter(&acc_kf[i], data_store->acc[i]);
+			bmi088->gyro[i] = Kalman_One_Filter(&gyro_kf[i], data_store->gyro[i]);
+			if (bmi088->cali_mode == BMI088_CALIBRATE_ONLINE_MODE)
+			{
+				bmi088->acc[i]  = bmi088->BMI088_ACCEL_SEN * bmi088->acc[i];
+				bmi088->gyro[i] = bmi088->BMI088_GYRO_SEN * bmi088->gyro[i];
+			}
+			else
+			{
+				bmi088->acc[i]  = bmi088->BMI088_ACCEL_SEN * bmi088->acc[i] * bmi088->accel_scale - bmi088->acc_offset[i];
+				bmi088->gyro[i] = bmi088->BMI088_GYRO_SEN * bmi088->gyro[i] - bmi088->gyro_offset[i];
+			}
+			data_store->acc[i]  = bmi088->acc[i];
+			data_store->gyro[i] = bmi088->gyro[i];
 #else
             bmi088->acc[i] = data_store->acc[i];
             bmi088->gyro[i] = data_store->gyro[i];
+                    
 #endif
         }
 
@@ -758,21 +724,19 @@ uint8_t BMI088_Acquire_IT_Status(bmi088_instance_t *bmi088)
         return 0;
 }
 
+// #pragma message ("REMEMBER TO CHANGE CALI PARAMETERS IF YOU CHOOSE NOT TO CALIBRATE ONLINE(parameters in robot_def.h)")
+#define GYRO_CALIBRATE_TIME 20000 // 20s
 /**
  * @brief BMI088 gyro 标定
  * @attention 不管工作模式是blocking还是IT,标定时都是blocking模式,所以不用担心中断关闭后无法标定(RobotInit关闭了全局中断)
  * @param _bmi088 待标定的BMI088实例
  */
+float gyro_diff[3], g_norm_diff;
 
 void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
 {
-    //	bmi088_work_mode_e mode = _bmi088->work_mode;
-    //	BMI088_Set_Mode(_bmi088, BMI088_BLOCK_PERIODIC_MODE);
-
     if (_bmi088->cali_mode == BMI088_CALIBRATE_ONLINE_MODE) // 性感bmi088在线标定
     {
-        static float gyro_diff[3], g_norm_diff;
-
         static float start_time = 0.0f;
         static uint16_t cail_time = 6000;
         static uint16_t acc_cali_time = 6000;
@@ -781,35 +745,6 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
         float g_norm_temp, g_norm_max, g_norm_min;
 
         static uint16_t cali_time_count = 0;
-
-        uint8_t WhoAmI_check = 0;
-
-        BMI088_Accel_Read(_bmi088, BMI088_ACC_CHIP_ID, &WhoAmI_check, 1); // dummy read,
-        // HAL_Delay(1);
-        DWT_Delay(0.001f);
-        BMI088_Accel_Read(_bmi088, BMI088_ACC_CHIP_ID, &WhoAmI_check, 1); // dummy read,
-        // HAL_Delay(1);
-        DWT_Delay(0.001f);
-
-        if (WhoAmI_check != BMI088_ACC_CHIP_ID_VALUE)
-            while (1)
-            {
-                ;
-            }
-
-        BMI088_Gyro_Read(_bmi088, BMI088_GYRO_CHIP_ID, &WhoAmI_check, 1); // dummy read,
-        // HAL_Delay(1);
-        DWT_Delay(0.001f);
-        BMI088_Gyro_Read(_bmi088, BMI088_GYRO_CHIP_ID, &WhoAmI_check, 1); // dummy read,
-        // HAL_Delay(1);
-        DWT_Delay(0.001f);
-
-        //	BMI088_Gyro_Read(bmi088, BMI088_GYRO_CHIP_ID, &WhoAmI_check, 1);
-        if (WhoAmI_check != BMI088_GYRO_CHIP_ID_VALUE)
-            while (1)
-            {
-                ;
-            }
 
         start_time = DWT_GetTimeline_s();
         do
@@ -835,9 +770,9 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
                 _bmi088->gyro_offset[i] = 0.0f;
             }
 
-            bmi088_data_t bmi088_data = {0};
             for (uint16_t i = 0; i < cail_time; i++)
             {
+                bmi088_data_t bmi088_data = {0};
                 // 读imu数据(转化后)
                 BMI088_Read_All(_bmi088, &bmi088_data);
 
@@ -889,7 +824,7 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
                 g_norm_diff = g_norm_max - g_norm_min;
                 for (uint8_t j = 0; j < 3; j++)
                 {
-                    gyro_diff[j] = gyro_max[j] - gyro_min[j];
+                    gyro_diff[j] = gyro_max[j] + gyro_min[j];
                 }
                 if (g_norm_diff > 0.5f || gyro_diff[0] > 0.15f || gyro_diff[1] > 0.15f || gyro_diff[2] > 0.15f)
                 {
@@ -900,7 +835,7 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
 
                 if (cali_time_count % 1000 == 0)
                 {
-                    Buzzer_One_Note(1047, 0.2f, 1);
+                    // Buzzer_One_Note(1047, 0.2f, 1);
                 }
                 cali_time_count++;
             }
@@ -913,6 +848,7 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
             }
 
             _bmi088->cali_temperature = _bmi088->temperature;
+
         } while (g_norm_diff > 0.5f ||
                  fabsf(_bmi088->g_norm - 9.8f) > 0.5f ||
                  gyro_diff[0] > 0.15f ||
@@ -944,7 +880,7 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
 
             if (cali_time_count % 1000 == 0)
             {
-                Buzzer_One_Note(1047, 0.2f, 1);
+                // Buzzer_One_Note(1047, 0.2f, 1);
             }
             cali_time_count++;
         }
@@ -962,10 +898,6 @@ void BMI088_Calibrate_IMU(bmi088_instance_t *_bmi088)
         _bmi088->cali_temperature = 40.0F; // 40度
         _bmi088->accel_scale = 9.81f / _bmi088->g_norm;
     }
-
-    _bmi088->acc_offset[2] = 0.0f;
-    _bmi088->cali_mode = BMI088_LOAD_PRE_CALI_MODE;
-    //	BMI088_Set_Mode(_bmi088, mode); // 恢复工作模式
 }
 
 bmi088_instance_t *BMI088_Register(bmi088_init_config_t *config)
@@ -1021,16 +953,14 @@ bmi088_instance_t *BMI088_Register(bmi088_init_config_t *config)
         error_count++;
         if (error_count == 10)
         {
-            Buzzer_One_Note(7902, 0.2f, 1); // 10次初始化失败报警
+            // Buzzer_One_Note(7902, 0.2f, 1); // 10次初始化失败报警
             break;
         }
     } while (error != 0);
-#if BMI088_USE_KALMAN_FILTER
-    BMI088_Kalman_Filter_Init();
-#endif
-    //	bmi088_instance->cali_mode = BMI088_LOAD_PRE_CALI_MODE;
-    //	BMI088_Calibrate_IMU(bmi088_instance);               // 标定acc和gyro
     bmi088_instance->cali_mode = config->cali_mode;
+#if BMI088_USE_FILTER
+	BMI088_Filter_Init( );
+#endif
     BMI088_Calibrate_IMU(bmi088_instance);               // 标定acc和gyro
     BMI088_Set_Mode(bmi088_instance, config->work_mode); // 恢复工作模式
 

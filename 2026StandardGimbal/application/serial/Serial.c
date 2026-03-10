@@ -175,10 +175,9 @@ void Pack_And_Send_Data_ROS2(send_packet_t *send_packet)
     CDC_SendFeed(tmp, len);
 }
 
-/* */
 void NV_Send_Packet_Init(nv_send_packet_t *send_packet)
 {
-    send_packet->nav_header = 0x5A; // 帧头赋值
+    send_packet->header = 0x5A; // 帧头赋值
     send_packet->imu_pitch = INS.Pitch;
     send_packet->imu_yaw = INS.Yaw;
     // send_packet->roll = INS.Roll;

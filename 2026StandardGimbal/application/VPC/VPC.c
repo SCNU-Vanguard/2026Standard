@@ -23,7 +23,7 @@
 #include "shoot.h"
 uint8_t frame_buf[512];
 Quaternion_t motor_q;
-
+int hp = 1;
 void VPC_Init(void)
 {
   NV_Send_Packet_Init(&nv_aim_packet_to_nuc);
@@ -32,6 +32,9 @@ void VPC_Init(void)
   // Send_Packet_Init(&aim_packet_to_nuc);
 }
 
+/*
+根据云台的电机解算imu角度逆解算出四元数
+*/
 void MotorToQuaternion(Quaternion_t *q, float motor_yaw, float motor_pitch)
 {
    // 1. 获取半角
@@ -68,41 +71,32 @@ void MotorToQuaternion(Quaternion_t *q, float motor_yaw, float motor_pitch)
 /* 更新发送给上位机的数据包 */
 void VPC_UpdatePackets(void)
 {
+	if(hp <500)
+	{
+		hp++;
+	}
+	else if(hp>=500)
+		hp = 0;
   /*导航传输数据区*/
-  // nv_aim_packet_to_nuc.header = 0x5A; // 帧头赋值
+  nv_aim_packet_to_nuc.header = 0x5A; // 帧头赋值
+// nv_aim_packet_to_nuc.detect_color = 1;
+//	 nv_aim_packet_to_nuc.task_mode = 0;
+//	 nv_aim_packet_to_nuc.reset_tracker = 1;
+//	 nv_aim_packet_to_nuc.is_play = 0;
+//	 nv_aim_packet_to_nuc.change_target = 1;
+//	 nv_aim_packet_to_nuc.reserve = 2;
+  nv_aim_packet_to_nuc.imu_pitch = INS.Pitch;
+  nv_aim_packet_to_nuc.imu_yaw = INS.Yaw;
 
-  // nv_aim_packet_to_nuc.imu_pitch = angle_pitch_motor2imu;
-  // nv_aim_packet_to_nuc.imu_yaw = angle_yaw_motor2imu;
-
-  // nv_aim_packet_to_nuc.joint_pitch = -gimbal_motor_pitch->measure.rad + 5.22f;
-  // nv_aim_packet_to_nuc.joint_yaw = INS.Yaw;
-
-  // nv_aim_packet_to_nuc.timestamp = 0; // 时间戳 （未定）
-  // nv_aim_packet_to_nuc.robot_hp = 0;  // 血量（未定）
-  // nv_aim_packet_to_nuc.game_time = 0; // 比赛时间（未定）
-
-  /*导航与TJ视觉合并包*/
- nv_aim_packet_to_nuc.nav_header = 0x5A; // 帧头赋值
- nv_aim_packet_to_nuc.imu_pitch = angle_pitch_motor2imu;
- nv_aim_packet_to_nuc.imu_yaw = angle_yaw_motor2imu;
-
- nv_aim_packet_to_nuc.joint_pitch = -gimbal_motor_pitch->measure.rad + 5.22f;
- nv_aim_packet_to_nuc.joint_yaw = INS.Yaw;
-
-
- nv_aim_packet_to_nuc.vis_head[0] = 'S';
- nv_aim_packet_to_nuc.vis_head[1] = 'P';
- nv_aim_packet_to_nuc.vis_mode = 1;
- nv_aim_packet_to_nuc.q[0] = motor_q.w;
- nv_aim_packet_to_nuc.q[1] = motor_q.x;
- nv_aim_packet_to_nuc.q[2] = motor_q.y;
- nv_aim_packet_to_nuc.q[3] = motor_q.z;
- nv_aim_packet_to_nuc.vis_yaw = angle_yaw_motor2imu;
- nv_aim_packet_to_nuc.vis_yaw_vel = uart2_rx_message.yaw_vel; // 来自底盘的yaw角速度
- nv_aim_packet_to_nuc.vis_pitch = angle_pitch_motor2imu;
- nv_aim_packet_to_nuc.vis_pitch_vel = gimbal_motor_pitch->measure.speed; // 云台pitch轴角速度 rad/s
- nv_aim_packet_to_nuc.vis_bullet_speed = BULLET_V;                       // 现在为设置弹速，不是实际弹速
- nv_aim_packet_to_nuc.vis_bullet_count = 0;                              // 未定
+  nv_aim_packet_to_nuc.joint_pitch = -gimbal_motor_pitch->measure.rad + 5.22f;
+  nv_aim_packet_to_nuc.joint_yaw = angle_yaw_motor2imu;
+  
+	nv_aim_packet_to_nuc.aim_x = 0;
+  nv_aim_packet_to_nuc.aim_y = 0;
+  nv_aim_packet_to_nuc.aim_z = 0;
+  nv_aim_packet_to_nuc.timestamp = 0; // 时间戳 （未定）
+  nv_aim_packet_to_nuc.robot_hp = hp;  // 血量（未定）
+  nv_aim_packet_to_nuc.game_time = 0; // 比赛时间（未定）
 
 
   /*新视觉传输数据区*/                //(同济大学版本)
@@ -110,43 +104,27 @@ void VPC_UpdatePackets(void)
   vs_aim_packet_to_nuc.head[0] = 'S';
   vs_aim_packet_to_nuc.head[1] = 'P';
   vs_aim_packet_to_nuc.mode = 1;
-  vs_aim_packet_to_nuc.q[0] = motor_q.w;
-  vs_aim_packet_to_nuc.q[1] = motor_q.x;
-  vs_aim_packet_to_nuc.q[2] = motor_q.y;
-  vs_aim_packet_to_nuc.q[3] = motor_q.z;
-  vs_aim_packet_to_nuc.yaw = angle_yaw_motor2imu;
+  // vs_aim_packet_to_nuc.q[0] = motor_q.w;
+  // vs_aim_packet_to_nuc.q[1] = motor_q.x;
+  // vs_aim_packet_to_nuc.q[2] = motor_q.y;
+  // vs_aim_packet_to_nuc.q[3] = motor_q.z;
+  // vs_aim_packet_to_nuc.yaw = angle_yaw_motor2imu;
+  // vs_aim_packet_to_nuc.yaw_vel = uart2_rx_message.yaw_vel; // 来自底盘的yaw角速度
+  // vs_aim_packet_to_nuc.pitch = angle_pitch_motor2imu;
+  // vs_aim_packet_to_nuc.pitch_vel = gimbal_motor_pitch->measure.speed; // 云台pitch轴角速度 rad/s
+
+  vs_aim_packet_to_nuc.q[0] = INS.q[0];
+  vs_aim_packet_to_nuc.q[1] = INS.q[1];
+  vs_aim_packet_to_nuc.q[2] = INS.q[2];
+  vs_aim_packet_to_nuc.q[3] = INS.q[3];
+  vs_aim_packet_to_nuc.yaw = INS.Yaw;
   vs_aim_packet_to_nuc.yaw_vel = uart2_rx_message.yaw_vel; // 来自底盘的yaw角速度
-  vs_aim_packet_to_nuc.pitch = angle_pitch_motor2imu;
+  vs_aim_packet_to_nuc.pitch = INS.Pitch;
   vs_aim_packet_to_nuc.pitch_vel = gimbal_motor_pitch->measure.speed; // 云台pitch轴角速度 rad/s
+
   vs_aim_packet_to_nuc.bullet_speed = BULLET_V;                       // 现在为设置弹速，不是实际弹速
   vs_aim_packet_to_nuc.bullet_count = 0;                              // 未定
 
-  /*深圳大学版本*/
-  // vs_aim_packet_to_nuc.output_data.config = 1.0f;
-  // vs_aim_packet_to_nuc.output_data.target_pose[0] = 0.0f;
-  // vs_aim_packet_to_nuc.output_data.target_pose[1] = 0.0f;
-  // vs_aim_packet_to_nuc.output_data.target_pose[2] = 0.0f;
-  // vs_aim_packet_to_nuc.output_data.curr_yaw = INS.Yaw;
-  // vs_aim_packet_to_nuc.output_data.curr_pitch = INS.Pitch;
-  // vs_aim_packet_to_nuc.output_data.enemy_color = 0; // 0-蓝 1-红
-  // vs_aim_packet_to_nuc.output_data.shoot_config = 0x80;
-
-  /*旧视觉传输数据区*/
-  aim_packet_to_nuc.header = 0x5A;
-  aim_packet_to_nuc.detect_color = 1;
-  aim_packet_to_nuc.task_mode = 1; // 0-auto 1-aim 2-buff
-  aim_packet_to_nuc.reset_tracker = 1;
-  aim_packet_to_nuc.is_play = 1;
-  aim_packet_to_nuc.change_target = 1;
-  aim_packet_to_nuc.reserved = 1;
-  aim_packet_to_nuc.roll = INS.Roll;
-  aim_packet_to_nuc.pitch = -gimbal_motor_pitch->measure.rad + angle_pitch_offset;
-  aim_packet_to_nuc.yaw = INS.Yaw;
-  aim_packet_to_nuc.aim_x = 0;
-  aim_packet_to_nuc.aim_y = 0;
-  aim_packet_to_nuc.aim_z = 0;
-  aim_packet_to_nuc.game_time = 0.0f;
-  aim_packet_to_nuc.timestamp = 0.0f;
 }
 
 /*根据帧头选择对应的数据处理*/

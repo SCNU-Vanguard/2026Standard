@@ -90,9 +90,9 @@ void INS_Init(void)
 	float init_quaternion[4] = {1, 0, 0, 0};
 	EKF_Quaternion_Init(init_quaternion);
 	// IMU_QuaternionEKF_Init(init_quaternion, 12, 0.005f, 1000000 * 15, 0.9998f, 0.005f);
-	IMU_QuaternionEKF_Init(init_quaternion, 20, 0.01f, 1000000 * 5, 0.9998f, 0.0f);
+	IMU_QuaternionEKF_Init(init_quaternion, 10.0f, 0.005f, 1000000.0f, 0.9996f, 0.003f);
 
-	INS.AccelLPF = 0.01f; // 加速度低通滤波系数
+	INS.AccelLPF = 0.0085f; // 加速度低通滤波系数
 }
 
 const float gravity[3] = {0, 0, 9.81f};

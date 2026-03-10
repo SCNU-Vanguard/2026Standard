@@ -117,6 +117,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) // 接收回调函数
             {
                 target_angle_yaw = target_angle_yaw + uart2_rx_message.delta_target_angle_yaw;
             }
+
             last_uart2_uwTick = uwTick;
             uart2_status = ready_to_transmit;
             uart2_transmit_control();
@@ -134,6 +135,7 @@ void uart2_online_check(void)
         uart2_rx_message.target_x_speed = 0;
         uart2_rx_message.target_y_speed = 0;
         uart2_rx_message.target_omega_speed = 0;
+        uart2_rx_message.delta_target_angle_yaw = 0;
     }
 }
 

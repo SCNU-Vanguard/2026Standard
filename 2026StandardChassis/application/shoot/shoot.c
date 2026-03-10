@@ -19,12 +19,12 @@
 #define M2006_REDUCTION_RATIO     36.0f   // M2006电机减速比
 
 uint16_t target_shoot_rpm = 0;
-float shoot_hz = 10.0f; //射击频率（发/秒）
+float shoot_hz = 7.0f; //射击频率（发/秒）
 
 
 PID_t chassis_2006_speed_pid = {
-    .kp = 30.0f,
-    .ki = 3.0f,
+    .kp = 80.0f,
+    .ki = 15.0f,
     .kd = 0.0f, 
     .output_limit = 9000.0f,
     .integral_limit = 9000.0f,
@@ -150,6 +150,7 @@ void Shoot_State_Machine(void)
             Shoot_Stop();
             break;
         case SHOOT_MODE_FIRE:
+        if(gimbal_motor_yaw->receive_data.position > 0.0f)
              target_shoot_rpm = BulletFreq_to_RadS(shoot_hz);
              Shoot_Enable();
              DJI_Motor_Set_Ref(chassis_shoot_motor, target_shoot_rpm);

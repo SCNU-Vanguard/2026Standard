@@ -45,8 +45,6 @@ static void Gimbal_Task(void *argument);
 
 void Gimbal_Task_Init(void)
 {
-    LowPass_Filter1p_Init(&pitch_lpf_filter, 0.8f);
-    LowPass_Filter1p_Init(&yaw_lpf_filter, 0.8f);
     if (g_xSemVPC == NULL)
     {
         g_xSemVPC = xSemaphoreCreateBinary();
@@ -66,9 +64,18 @@ uint32_t gimbal_task_diff;
 
 // float TTT = 0;
 // float AAA = 0;
-// float gimbal_t_ms = 0;
-// float gimbal_delta_t = 0;
-// float gimbal_freq = 0;
+
+float TTT = 0.0f;
+float AAA = 0.0f;
+float SP = 0.0f;
+float SI = 0.0f;
+float SD = 0.0f;
+float AP = 0.0f;
+float AI = 0.0f;
+float AD = 0.0f;
+
+float AF = 0.0f;
+float SF = 0.0f;
 
 static void Gimbal_Task(void *argument)
 {
@@ -85,6 +92,22 @@ static void Gimbal_Task(void *argument)
         Gimbal_State_Machine();
         // TTT = target_angle_pitch;
         // AAA = gimbal_motor_pitch->measure.rad;
+
+    //    gimbal_motor_pitch->motor_controller.speed_PID->kp = SP;
+    //    gimbal_motor_pitch->motor_controller.speed_PID->ki = SI;
+    //    gimbal_motor_pitch->motor_controller.speed_PID->kd = SD;
+    //    gimbal_motor_pitch->motor_controller.angle_PID->kp = AP;
+    //    gimbal_motor_pitch->motor_controller.angle_PID->ki = AI;
+    //    gimbal_motor_pitch->motor_controller.angle_PID->kd = AD;
+
+//    gimbal_pitch_speed_digital_pid.Kf = AF;
+//        gimbal_pitch_angle_digital_pid.Kp = AP;
+//        gimbal_pitch_angle_digital_pid.Ki = AI;
+//        gimbal_pitch_angle_digital_pid.Kd = AD;
+//        gimbal_pitch_speed_digital_pid.Kf = SF;
+//        gimbal_pitch_speed_digital_pid.Kp = SP;
+//        gimbal_pitch_speed_digital_pid.Ki = SI;
+//        gimbal_pitch_speed_digital_pid.Kd = SD;
         Chassis_Control();
         uart2_online_check();
 

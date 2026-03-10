@@ -137,10 +137,13 @@ float PID_Increment(PID_t *pid, float measure, float target)
         pid->i_term = pid->ki * pid->error;
         pid->i_out = pid->i_term;
         pid->d_out = pid->kd * (pid->error - 2.0f * pid->last_error + pid->pre_error);
+        pid->f_out = pid->kf * (pid->target - pid->last_target);
 
         pid->i_out = Value_Limit(pid->i_out, -pid->integral_limit, pid->integral_limit); // 积分限幅
 
-        pid->output += (pid->p_out + pid->i_out + pid->d_out); // 计算输出
+        pid->f_out = Value_Limit(pid->f_out, -pid->fout_limit, pid->fout_limit); // 前馈限幅
+
+        pid->output += (pid->p_out + pid->i_out + pid->d_out + pid->f_out); // 计算输出
 
         pid->output = Value_Limit(pid->output, -pid->output_limit, pid->output_limit); // 输出限幅
     }
@@ -159,4 +162,22 @@ float PID_Increment(PID_t *pid, float measure, float target)
     pid->last_error = pid->error;
 
     return pid->output;
+}
+
+void PID_Clear(PID_t *pid)
+{
+    pid->output = 0.0f;
+    pid->p_out = 0.0f;
+    pid->i_out = 0.0f;
+    pid->i_term = 0.0f;
+    pid->d_out = 0.0f;
+    pid->target = 0.0f;
+    pid->measure = 0.0f;
+    pid->error = 0.0f;
+    pid->last_target = pid->target;
+    pid->last_measure = pid->measure;
+    pid->last_output = pid->output;
+    pid->last_d_out = pid->d_out;
+    pid->last_error = pid->error;
+    pid->pre_error = pid->last_error;
 }

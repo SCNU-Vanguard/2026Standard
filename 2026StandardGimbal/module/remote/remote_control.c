@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "gimbal.h"
 #include "remote_control.h"
 
 #include "defense_center.h"
@@ -98,6 +99,26 @@ static void sbus_to_rc(const uint8_t *sbus_buf)
 	}
 
 	memcpy(&rc_ctrl[LAST], &rc_ctrl[TEMP], sizeof(RC_ctrl_t)); // 保存上一次的数据,用于按键持续按下和切换的判断
+}
+
+/**
+ * @brief 根据shift键获取底盘档位
+ */
+void Update_Chassis_Gear(void)
+{
+	static uint8_t last_gear_state = 0;
+	uint8_t current_gear_state = rc_ctrl[TEMP].key[KEY_PRESS].shift; // shift键作为档位切换的触发键
+    
+	if(current_gear_state == 1 && last_gear_state == 0)
+	{
+		// 档位切换逻辑
+		current_gear++;
+		if(current_gear >= SPEED_GEAR_COUNT)
+		{
+			current_gear = GEAR_PRECISION; // 循环回到最低档
+		}
+	}
+	last_gear_state = current_gear_state;
 }
 
 /**
