@@ -477,79 +477,90 @@ void DM_Motor_Control(void)
             pid_ref *= -1; // 目标值设置反转
         }
 
-        // pid_ref会顺次通过被启用的闭环充当数据的载体
-        // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
-        // dm_diff的值需要自己另外做处理，比如使其指向视觉发送的目标装甲板的偏差值
-        if ((motor_setting->close_loop_type & ANGLE_LOOP) && (motor_setting->outer_loop_type == ANGLE_LOOP))
-        {
-            if (motor_setting->angle_feedback_source == OTHER_FEED)
+        if (motor->motor_settings.control_button == POLYCYCLIC_LOOP_CONTROL)
+		{
+            // pid_ref会顺次通过被启用的闭环充当数据的载体
+            // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
+            // dm_diff的值需要自己另外做处理，比如使其指向视觉发送的目标装甲板的偏差值
+            if ((motor_setting->close_loop_type & ANGLE_LOOP) && (motor_setting->outer_loop_type == ANGLE_LOOP))
             {
-                pid_fab = *motor_controller->other_angle_feedback_ptr;
+                if (motor_setting->angle_feedback_source == OTHER_FEED)
+                {
+                    pid_fab = *motor_controller->other_angle_feedback_ptr;
+                }
+                else
+                {
+                    if (motor->motor_feedback == DM_MOTOR_ABSOLUTE)
+                    {
+                        pid_fab = motor->receive_data.position;
+                    }
+                    else if (motor->motor_feedback == DM_MOTOR_DIFF)
+                    {
+                        pid_fab = motor->receive_data.dm_diff;
+                    }
+                }
+                // 更新pid_ref进入下一个环
+                pid_ref = PID_Position(motor_controller->angle_PID,
+                                    pid_fab,
+                                    pid_ref);
             }
-            else
+
+                    // 计算速度环,(外层闭环为速度或位置)且(启用速度环)时会计算速度环
+                if ((motor_setting->close_loop_type & SPEED_LOOP) && (motor_setting->outer_loop_type & (ANGLE_LOOP | SPEED_LOOP)))
+                {
+        //            if (motor->motor_feedback == DM_MOTOR_ABSOLUTE)
+        //            {
+        //                pid_fab = motor->receive_data.position;//速度环不使用
+        //            }
+                    if (motor_setting->feedforward_flag & SPEED_FEEDFORWARD)
+                    {
+                        pid_ref += *motor_controller->speed_feedforward_ptr;
+                    }
+
+                    if (motor_setting->speed_feedback_source == OTHER_FEED)
+                    {
+                        pid_fab = *motor_controller->other_speed_feedback_ptr;
+                    }
+                    else
+                    {
+                        if (motor->motor_feedback == DM_MOTOR_ABSOLUTE)
+                        {
+                            pid_fab = motor->receive_data.velocity;
+                        }
+                        else if (motor->motor_feedback == DM_MOTOR_DIFF)
+                        {
+                            pid_fab = motor->receive_data.dm_diff;
+                        }
+                    }
+                    
+                    // 更新pid_ref进入下一个环
+        //            pid_ref = PID_Increment(motor_controller->speed_PID,
+        //                                    receive_data->velocity,
+        //                                    pid_ref);
+                    pid_ref = PID_Increment(motor_controller->speed_PID,
+                                            pid_fab,
+                                            pid_ref);
+                }
+
+            // 计算扭矩环,目前只要启用了扭矩环就计算,不管外层闭环是什么,并且扭矩只有电机自身传感器的反馈
+            if (motor_setting->feedforward_flag & TORQUE_FEEDFORWARD)
             {
-                if (motor->motor_feedback == DM_MOTOR_ABSOLUTE)
-                {
-                    pid_fab = motor->receive_data.position;
-                }
-                else if (motor->motor_feedback == DM_MOTOR_DIFF)
-                {
-                    pid_fab = motor->receive_data.dm_diff;
-                }
+                pid_ref += *motor_controller->torque_feedforward_ptr;
             }
-            // 更新pid_ref进入下一个环
-            pid_ref = PID_Position(motor_controller->angle_PID,
-                                   pid_fab,
-                                   pid_ref);
+            if (motor_setting->close_loop_type & TORQUE_LOOP)
+            {
+                pid_ref = PID_Position(motor_controller->torque_PID,
+                                    receive_data->torque,
+                                    pid_ref);
+            }
         }
-
-        		// 计算速度环,(外层闭环为速度或位置)且(启用速度环)时会计算速度环
-			if ((motor_setting->close_loop_type & SPEED_LOOP) && (motor_setting->outer_loop_type & (ANGLE_LOOP | SPEED_LOOP)))
-			{
-	//            if (motor->motor_feedback == DM_MOTOR_ABSOLUTE)
-	//            {
-	//                pid_fab = motor->receive_data.position;//速度环不使用
-	//            }
-				if (motor_setting->feedforward_flag & SPEED_FEEDFORWARD)
-				{
-					pid_ref += *motor_controller->speed_feedforward_ptr;
-				}
-
-				if (motor_setting->speed_feedback_source == OTHER_FEED)
-				{
-					pid_fab = *motor_controller->other_speed_feedback_ptr;
-				}
-				else
-				{
-					if (motor->motor_feedback == DM_MOTOR_ABSOLUTE)
-					{
-						pid_fab = motor->receive_data.velocity;
-					}
-					else if (motor->motor_feedback == DM_MOTOR_DIFF)
-					{
-						pid_fab = motor->receive_data.dm_diff;
-					}
-				}
-				
-				// 更新pid_ref进入下一个环
-	//            pid_ref = PID_Increment(motor_controller->speed_PID,
-	//                                    receive_data->velocity,
-	//                                    pid_ref);
-				pid_ref = PID_Increment(motor_controller->speed_PID,
-										pid_fab,
-										pid_ref);
-			}
-
-        // 计算扭矩环,目前只要启用了扭矩环就计算,不管外层闭环是什么,并且扭矩只有电机自身传感器的反馈
-        if (motor_setting->feedforward_flag & TORQUE_FEEDFORWARD)
+        else
         {
-            pid_ref += *motor_controller->torque_feedforward_ptr;
-        }
-        if (motor_setting->close_loop_type & TORQUE_LOOP)
-        {
-            pid_ref = PID_Position(motor_controller->torque_PID,
-                                   receive_data->torque,
-                                   pid_ref);
+            // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
+                if (motor_setting->feedforward_flag & TORQUE_FEEDFORWARD)
+                {
+                    pid_ref += *motor_controller->torque_feedforward_ptr;
+                }
         }
 
         if (motor_setting->feedback_reverse_flag == FEEDBACK_DIRECTION_REVERSE)

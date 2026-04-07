@@ -27,11 +27,13 @@
 #include "referee.h"
 #include "user_lib.h"
 
+#include "digital_pid.h"
+
 // 舵向电机零点偏移 (弧度)
-#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_1 620.0f / 8192.0f * 2 * PI
-#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_2 1270.0f / 8192.0f * 2 * PI
-#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_3 3380.0f / 8192.0f * 2 * PI
-#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_4 1962.0f / 8192.0f * 2 * PI
+#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_1 6012.0f / 8192.0f * 2 * PI
+#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_2 2624.0f / 8192.0f * 2 * PI
+#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_3 7429.0f / 8192.0f * 2 * PI
+#define CHASSIS_MOTOR_DIRECT_ZEROPOINT_4 6069.0f / 8192.0f * 2 * PI
 
 // 底盘物理参数
 #define CHASSIS_RADIUS 0.21917f      // 底盘半径 (m)
@@ -69,9 +71,10 @@ Speed_Ramp_t chassis_y_speed_ramp = {
     .accel_step = ACC_SPEED_STEP,
     .decel_step = DEC_SPEED_STEP,
 };
+
 PID_t chassis_3508_speed_pid = {
-    .kp = 12.0f,  // 10.0f
-    .ki = 0.001f, // 0.01f
+    .kp = 75.0f,  // 10.0f
+    .ki = 0.15f, // 0.01f
     .kd = 0.0f,
     .output_limit = 10000.0f,
     .integral_limit = 10000.0f,
@@ -96,22 +99,40 @@ PID_t chassis_6020_speed_pid = {
     .dead_band = 0.0f,
 };
 
+//digital_PID_t chassis_yaw_angle_digital_pid = {
+//    .kp = 17.0f,
+//    .ki = 0.0f,
+//    .kd = 3.2f,
+//    .output_limit = 20.0f,
+//    .integral_limit = 0.0f, 
+//    .dead_band = 0.0f,
+//};
+
+//digital_PID_t chassi s_yaw_speed_digital_pid = {
+//    .kp = 1.6f,
+//    .ki = 0.01f,
+//    .kd = 0.45f,
+//    .output_limit = 5.0f,
+//    .integral_limit = 0.0f,
+//    .dead_band = 0.0f,
+//};
+
 PID_t gimbal_4310_angle_pid = {
-    .kp = 14.0f,           // 15.0f,//12.0f
+    .kp = 17.0f,           // 15.0f,
     .ki = 0.0f,            // 0.0f,
-    .kd = 3.2f,            // 1.2f, //3.0f,
-    .output_limit = 10.0f, // 5.0f,
+    .kd = 3.2f,            // 1.2f, 
+    .output_limit = 10.0f, // 20.0f,
     .integral_limit = 0.0f,
     .dead_band = 0.0f,
 };
  
 PID_t gimbal_4310_speed_pid = {
-    .kp = 1.5f,  // 1.5f,
-    .ki = 0.01f, // 0.005f,//0.01f,
-    .kd = 0.3f,//0.5f,  // 0.005f,//5.0f,
+    .kp = 1.6f,  // 1.5f,
+    .ki = 0.01f, //0.01f,
+    .kd = 0.45f, //20.0f,
     .kf = 25.0f,
-    .output_limit = 3.0f,
-    .integral_limit = 2.0f,
+    .output_limit = 3.0f,//10.0f,
+    .integral_limit = 2.0f,//10.0f,
     .fout_limit = 5.0f,
     .dead_band = 0.0f,
 };
@@ -417,6 +438,7 @@ motor_init_config_t chassis_6020_init_4 = {
     .controller_setting_init_config = {
         .outer_loop_type = ANGLE_LOOP,
         .close_loop_type = ANGLE_AND_SPEED_LOOP,
+        .control_button  = POLYCYCLIC_LOOP_CONTROL,
 
         .motor_reverse_flag = MOTOR_DIRECTION_NORMAL,
         .feedback_reverse_flag = FEEDBACK_DIRECTION_NORMAL,

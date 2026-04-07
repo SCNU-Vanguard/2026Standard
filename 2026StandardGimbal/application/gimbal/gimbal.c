@@ -21,7 +21,7 @@
 #define RC_SENSITIVITY_YAW 0.00002f     // 遥控器控制的yaw角速度灵敏度
 // 底盘速度相关参数
 #define RC_SENSITIVITY_X 0.005f // 遥控器X轴速度灵敏度
-#define RC_SENSITIVITY_Y 0.005f // 遥控器Y轴速度灵敏度
+#define RC_SENSITIVITY_Y 0.002f // 遥控器Y轴速度灵敏度
 
 // #define RC_SENSITIVITY_X 0.002f // 遥控器X轴速度灵敏度(靶车模式)
 // #define RC_SENSITIVITY_Y 0.002f // 遥控器Y轴速度灵敏度（靶车模式）
@@ -268,7 +268,12 @@ float Get_Chassis_X_Speed(uint8_t mode)
         x_speed = keyboard_speed_x;
         break;
     case GIMBAL_MODE_AUTO:
-        x_speed = 0; // vs_aim_packet_from_nuc.vx;
+        x_speed = vs_aim_packet_from_nuc.vx;
+        if (fabsf(x_speed) > 1e+8f || fabsf(x_speed) < 1e-8f)
+        {
+            x_speed = 0.0f;
+        }
+        // x_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
         break;
     case GIMBAL_MODE_MANUAL:
         x_speed = manual_chassis_speed_x;
@@ -304,7 +309,12 @@ float Get_Chassis_Y_Speed(uint8_t mode)
         y_speed = keyboard_speed_y;
         break;
     case GIMBAL_MODE_AUTO:
-        y_speed = 0; // vs_aim_packet_from_nuc.vy;
+        y_speed = vs_aim_packet_from_nuc.vy;
+        if (fabsf(y_speed) > 1e+8f || fabsf(y_speed) < 1e-8f)
+        {
+            y_speed = 0.0f;
+        }
+        // y_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
         break;
     case GIMBAL_MODE_MANUAL:
         y_speed = manual_chassis_speed_y;
@@ -347,10 +357,10 @@ float Get_Target_Oemga_Speed(uint8_t mode)
     float omega_speed = 0.0f;
 
     /*变频参数配置*/
-    const float base_omega = 2.5f * PI;  // 基础转速
-    const float range_omega = 0.5f * PI; // 变化振幅
-    const float frequency = 2.0f;        // 变化频率
-    const float dt = 0.001f;             // 控制频率
+    const float base_omega = 0.6f * 2 * PI; // 2.5f * PI;  // 基础转速，最前面为目标转速，后面2*PI是将转速转换为角速度
+    const float range_omega = 0.5f * PI;    // 变化振幅
+    const float frequency = 2.0f;           // 变化频率
+    const float dt = 0.001f;                // 控制频率
 
     switch (mode)
     {
@@ -477,7 +487,13 @@ void Gimbal_State_Machine(void)
     // TODO(GUATAI) 電流
     // torque_speed_feedforward = -k_forward * (0.1f * 0.65f * 9.8f * 16384.0f / 2.23f * cosf(INS.Pitch)); // 0.1f是负载质量，0.8f是效率估计，2.23f是6020电机转速常数，16384.0f是编码器分辨率的一半
     // 力矩
-    torque_speed_feedforward = -k_forward * (0.1f * 0.65f * 9.8f * cosf(INS.Pitch));
+    if (gimbal_mode == GIMBAL_MODE_STOP)
+    {
+        torque_speed_feedforward = 0;
+    }
+    else
+        torque_speed_feedforward = -k_forward * (0.1f * 0.65f * 9.8f * cosf(INS.Pitch));
+        
     angle_pitch_motor2imu = -gimbal_motor_pitch->measure.rad + angle_pitch_offset;
     angle_yaw_motor2imu = uart2_rx_message.gimbal_angle_yaw_motor2imu;
     angle_pitch = INS.Pitch;
@@ -553,6 +569,11 @@ void Gimbal_State_Machine(void)
             // scan_time += 0.005f;
             // target_angle_pitch = 0.2f * sinf(scan_time) + 0.08f;
             // target_angle_pitch_temp = target_angle_pitch;
+            target_angle_pitch -= rc_data->rc.rocker_r1 * 0.0000025f;
+            target_angle_pitch_temp = Delta_Target_Angle_Control(0.007f);
+            // target_angle_pitch_temp = Value_Limit(target_angle_pitch_temp, PITCH_UP_LIMIT, PITCH_DOWN_LIMIT);
+            //  target_angle_pitch = target_angle_pitch_temp;
+            target_angle_yaw -= rc_data->rc.rocker_r_ * 0.00001f;
         }
         else if (vs_aim_packet_from_nuc.mode == 1 || vs_aim_packet_from_nuc.mode == 2) // 识别到目标，进入自瞄模式
         {

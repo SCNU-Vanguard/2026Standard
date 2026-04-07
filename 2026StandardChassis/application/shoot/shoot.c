@@ -24,15 +24,15 @@ FeederState_e currentState = S_NORMAL;
 /*堵转控制参数*/
 #define SHOOT_CURRENT_STALL 8700.0f // 堵转电流
 #define SHOOT_SPEED_STALL 2.0f      // 堵转速度
-#define REVERSE_RADS -10.0f         // 反转速度
-#define SHOOT_TIME_STALL 800        // 堵转时间
-#define SHOOT_TIME_REVERSING 800    // 反转时间
-#define SHOOT_TIME_STOP 1000        // 停转时间
+#define REVERSE_RADS -12.0f         // 反转速度
+#define SHOOT_TIME_STALL 900        // 堵转时间
+#define SHOOT_TIME_REVERSING 950     // 反转时间
+#define SHOOT_TIME_STOP 1200        // 停转时间
 /*热量控制参数*/
 #define HEAT_SAFETY_MARGIN_HIGH 30.0f // 热量上限安全余量
 #define HEAT_SAFETY_MARGIN_LOW 90.0f  // 热量下限安全余量
 
-float shoot_hz = 15.0f; // 射击频率（发/秒）
+float shoot_hz = 11.0f; // 射击频率（发/秒）
 uint16_t target_shoot_rads = 0;
 uint16_t stall_cnt = 0;          // 堵转时间计数
 uint16_t reverse_cnt = 0;        // 反转时间计数
@@ -200,7 +200,8 @@ float Stall_Control_Loop(float target_rads)
             // 保持停止，让拨弹盘自然泄力回转
             Shoot_Stop();
             stop_cnt++;
-        }
+            return 0.0f; // 停止状态，目标转速为0
+        } 
         else
             reverse_cnt++;
 
@@ -210,6 +211,7 @@ float Stall_Control_Loop(float target_rads)
 
             // 调用PID清除积分函数，防止恢复正转时猛冲
             PID_Clear(chassis_shoot_motor->motor_controller.speed_PID);
+            return target_rads;
         }
         return REVERSE_RADS; // 处于反转状态，强制覆盖目标转速
     }
@@ -227,8 +229,13 @@ void Shoot_State_Machine(void)
         shoot_mode = SHOOT_MODE_STOP;
     }
 
-    Update_OverHeated(); // 更新过热状态
-    if (heat_locked == true && shoot_mode == SHOOT_MODE_FIRE)
+    // Update_OverHeated(); // 更新过热状态
+    // if (heat_locked == true && shoot_mode == SHOOT_MODE_FIRE)
+    // {
+    //     shoot_mode = SHOOT_MODE_READY;
+    // }
+
+    if(gimbal_motor_yaw ->receive_data.position > 1.88f || gimbal_motor_yaw ->receive_data.position < 1.39f)
     {
         shoot_mode = SHOOT_MODE_READY;
     }

@@ -29,7 +29,6 @@
 #include "shoot.h"
 #include "defense_center.h"
 
-
 #define CHASSIS_TASK_PERIOD 1 // ms
 
 osThreadId_t robot_cmd_task_handel;
@@ -60,6 +59,14 @@ uint32_t Last_time = 0;
 float TTT = 0;
 float AAA = 0;
 
+float AP = 0;
+float AI = 0;
+float AD = 0;
+float SP = 0;
+float SI = 0;
+float SD = 0;
+float SF = 0;
+
 static void Chassis_Task(void *argument)
 {
     HAL_UART_Receive_IT(&huart2, &uart2_current_byte, 1);
@@ -71,6 +78,31 @@ static void Chassis_Task(void *argument)
         Chassis_State_Machine();
         AAA = uart2_rx_message.INS_yaw;
         TTT = target_angle_yaw;
+
+        // gimbal_motor_yaw->motor_controller.angle_PID->kp = AP;
+        // gimbal_motor_yaw->motor_controller.angle_PID->ki = AI;
+        // gimbal_motor_yaw->motor_controller.angle_PID->kd = AD;
+        // gimbal_motor_yaw->motor_controller.speed_PID->kp = SP;
+        // gimbal_motor_yaw->motor_controller.speed_PID->ki = SI;
+        // gimbal_motor_yaw->motor_controller.speed_PID->kd = SD;
+        // gimbal_motor_yaw->motor_controller.speed_PID->kf = SF;
+//         
+        // chassis_motor_drive_1 ->motor_controller.speed_PID->kp = SP;
+        // chassis_motor_drive_1 ->motor_controller.speed_PID->ki = SI;
+        // chassis_motor_drive_1 ->motor_controller.speed_PID->kd = SD;
+
+        // chassis_motor_drive_2 ->motor_controller.speed_PID->kp = SP;
+        // chassis_motor_drive_2 ->motor_controller.speed_PID->ki = SI;
+        // chassis_motor_drive_2 ->motor_controller.speed_PID->kd = SD;
+
+        // chassis_motor_drive_3 ->motor_controller.speed_PID->kp = SP;
+        // chassis_motor_drive_3 ->motor_controller.speed_PID->ki = SI;
+        // chassis_motor_drive_3 ->motor_controller.speed_PID->kd = SD;
+
+        // chassis_motor_drive_4 ->motor_controller.speed_PID->kp = SP;
+        // chassis_motor_drive_4 ->motor_controller.speed_PID->ki = SI;
+        // chassis_motor_drive_4 ->motor_controller.speed_PID->kd = SD;
+
         uart2_online_check();
 
         chassis_task_diff = osKernelGetTickCount() - time;

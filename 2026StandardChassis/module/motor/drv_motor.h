@@ -144,11 +144,19 @@ typedef enum
 	ANGLE_LOOP_CONTRO  = 1,  //位置闭环控制(由电机支持)
 } motor_control_type_e;
 
+/* 电机控制方式枚举 */
+typedef enum
+{
+	POLYCYCLIC_LOOP_CONTROL = 0,  //多环嵌套闭合控制
+	TORQUE_DIRECT_CONTROL   = 1, //扭矩直接开环控制
+} motor_control_button_e;
+
 /* 电机控制设置,包括闭环类型,反转标志和反馈来源 */
 typedef struct
 {
 	closeloop_type_e outer_loop_type;    		// 最外层的闭环,未设置时默认为最高级的闭环
 	closeloop_type_e close_loop_type;             // 使用几个闭环(串级)
+	motor_control_button_e control_button;
 
 	motion_reverse_flag_e motor_reverse_flag;             // 电机转向是否反转(不改变原数据)
 	feedback_reverse_flag_e feedback_reverse_flag;        // 反馈数据是否反向(不改变原数据)
