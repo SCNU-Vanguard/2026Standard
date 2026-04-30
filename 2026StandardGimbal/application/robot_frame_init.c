@@ -41,10 +41,13 @@
 
 #include "BMI088driver.h"
 #include "remote_control.h"
+#include "remote_vt03.h"
 
 float init_time;
 RC_ctrl_t *rc_data;
 Referee_PicInfoTypedef *Referee_Picdata;
+VT03_ctrl_t *vt03_data;
+
 static void Frame_MCU_Init(void)
 {
     DWT_Init(480);
@@ -58,7 +61,9 @@ static void Frame_Device_Init(void)
     bmi088_h7 = BMI088_Register(&bmi088_init_h7);
 
     rc_data = Remote_Control_Init(&huart5);
-    Referee_Picdata = RefereePic_Init(&huart1);
+    //Referee_Picdata = RefereePic_Init(&huart1);
+    vt03_data = Vt03_Control_Init(&huart1);
+
     // VOFA_Register(&huart7);
     //  BMI088_Init(&hspi2,0);
 

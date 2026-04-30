@@ -56,6 +56,7 @@ extern float target_angle_yaw_temp;
 extern uint8_t chassis_mode;
 extern float target_speed;
 extern float yaw_zero_offset;
+extern float gimbal_angle_yaw_motor2imu;
 void Chassis_Init(void);
 void Chassis_Enable(void);
 void Chassis_Stop(void);

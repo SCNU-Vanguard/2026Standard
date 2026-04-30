@@ -32,7 +32,7 @@ FeederState_e currentState = S_NORMAL;
 #define HEAT_SAFETY_MARGIN_HIGH 30.0f // 热量上限安全余量
 #define HEAT_SAFETY_MARGIN_LOW 90.0f  // 热量下限安全余量
 
-float shoot_hz = 11.0f; // 射击频率（发/秒）
+float shoot_hz = 5.0f; // 射击频率（发/秒）
 uint16_t target_shoot_rads = 0;
 uint16_t stall_cnt = 0;          // 堵转时间计数
 uint16_t reverse_cnt = 0;        // 反转时间计数
@@ -228,18 +228,23 @@ void Shoot_State_Machine(void)
         init_count++;
         shoot_mode = SHOOT_MODE_STOP;
     }
-
+ 
     // Update_OverHeated(); // 更新过热状态
     // if (heat_locked == true && shoot_mode == SHOOT_MODE_FIRE)
     // {
     //     shoot_mode = SHOOT_MODE_READY;
     // }
 
-    if(gimbal_motor_yaw ->receive_data.position > 1.88f || gimbal_motor_yaw ->receive_data.position < 1.39f)
-    {
-        shoot_mode = SHOOT_MODE_READY;
-    }
+//    if(gimbal_motor_yaw ->receive_data.position > 1.88f || gimbal_motor_yaw ->receive_data.position < 1.39f)
+//    {
+//        shoot_mode = SHOOT_MODE_READY;
+//    }
 
+
+    //  if(gimbal_angle_yaw_motor2imu > 0.25f || gimbal_angle_yaw_motor2imu < -2.5f)
+    // {
+    //     shoot_mode = SHOOT_MODE_READY;
+    // }
     if (chassis_mode)
     {
         switch (shoot_mode)

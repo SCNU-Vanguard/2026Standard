@@ -13,6 +13,7 @@
 // module
 #include "Keyboard_Control.h"
 #include "remote_control.h"
+#include "remote_vt03.h"
 
 #include "stdbool.h"
 
@@ -34,44 +35,85 @@ uint8_t FRIC_flag = 0;				// 摩擦轮启动标志位
 /*
  *@brief 更新控制模式
  */
+// static void inline Update_Control_Mode()
+// {
+// 	Control_Mode = (rc_data->key_count[KEY_PRESS][Key_B] % 2); // B键作为键盘控制模式切换的触发键
+// }
+
+// static void inline Update_Chassis_Gear()
+// {
+// 	current_gear = (rc_data->key_count[KEY_PRESS][Key_C] % SPEED_GEAR_COUNT); // C键作为移动档位切换的触发键
+// }
+
+// static void inline Update_Chassis_Omega()
+// {
+// 	Omega_flag = (rc_data->key_count[KEY_PRESS][Key_Z] % 2); // F键作为小陀螺切换的触发键
+// }
+
+// static void inline Update_Fire_Ready()
+// {
+// 	FRIC_flag = (rc_data->key_count[KEY_PRESS][Key_R] % 2); // R键作为发射准备切换的触发键
+// }
+
+// static float inline Get_Current_Chassis_Speed_X()
+// {
+// 	return (rc_data->key[KEY_PRESS].w - rc_data->key[KEY_PRESS].s) * chassis_gear_speed[current_gear]; //x方向速度控制
+// }
+
+// static float inline Get_Current_Chassis_Speed_Y()
+// {
+// 	return (rc_data->key[KEY_PRESS].a - rc_data->key[KEY_PRESS].d) * chassis_gear_speed[current_gear]; //y方向速度控制
+// }
+
+// static float inline Get_Current_Target_Pitch()
+// {
+// 	return (float)rc_data->mouse.y * PITCH_SENSITIVITY; // 将鼠标竖直移动转换为pitch，乘以灵敏度调整参数
+// }
+
+// static float inline Get_Current_Target_Yaw()
+// {
+// 	return (float)rc_data->mouse.x * YAW_SENSITIVITY; // 将鼠标水平移动转换为yaw，乘以灵敏度调整参数
+// }
+
+//图传路径控制
 static void inline Update_Control_Mode()
 {
-	Control_Mode = (rc_data->key_count[KEY_PRESS][Key_B] % 2); // B键作为键盘控制模式切换的触发键
+	Control_Mode = (vt03_data->key_count[KEY_PRESS][Key_B] % 2); // B键作为键盘控制模式切换的触发键
 }
 
 static void inline Update_Chassis_Gear()
 {
-	current_gear = (rc_data->key_count[KEY_PRESS][Key_C] % SPEED_GEAR_COUNT); // C键作为移动档位切换的触发键
+	current_gear = (vt03_data->key_count[KEY_PRESS][Key_C] % SPEED_GEAR_COUNT); // C键作为移动档位切换的触发键
 }
 
 static void inline Update_Chassis_Omega()
 {
-	Omega_flag = (rc_data->key_count[KEY_PRESS][Key_Z] % 2); // F键作为小陀螺切换的触发键
+	Omega_flag = (vt03_data->key_count[KEY_PRESS][Key_Z] % 2); // Z键作为小陀螺切换的触发键
 }
 
 static void inline Update_Fire_Ready()
 {
-	FRIC_flag = (rc_data->key_count[KEY_PRESS][Key_R] % 2); // R键作为发射准备切换的触发键
+	FRIC_flag = (vt03_data->key_count[KEY_PRESS][Key_R] % 2); // R键作为发射准备切换的触发键
 }
 
 static float inline Get_Current_Chassis_Speed_X()
 {
-	return (rc_data->key[KEY_PRESS].w - rc_data->key[KEY_PRESS].s) * chassis_gear_speed[current_gear]; //x方向速度控制
+	return (vt03_data->key[KEY_PRESS].w - vt03_data->key[KEY_PRESS].s) * chassis_gear_speed[current_gear]; //x方向速度控制
 }
 
 static float inline Get_Current_Chassis_Speed_Y()
 {
-	return (rc_data->key[KEY_PRESS].a - rc_data->key[KEY_PRESS].d) * chassis_gear_speed[current_gear]; //y方向速度控制
+	return (vt03_data->key[KEY_PRESS].a - vt03_data->key[KEY_PRESS].d) * chassis_gear_speed[current_gear]; //y方向速度控制
 }
 
 static float inline Get_Current_Target_Pitch()
 {
-	return (float)rc_data->mouse.y * PITCH_SENSITIVITY; // 将鼠标竖直移动转换为pitch，乘以灵敏度调整参数
+	return (float)vt03_data->mouse.y * PITCH_SENSITIVITY; // 将鼠标竖直移动转换为pitch，乘以灵敏度调整参数
 }
 
 static float inline Get_Current_Target_Yaw()
 {
-	return (float)rc_data->mouse.x * YAW_SENSITIVITY; // 将鼠标水平移动转换为yaw，乘以灵敏度调整参数
+	return (float)vt03_data->mouse.x * YAW_SENSITIVITY; // 将鼠标水平移动转换为yaw，乘以灵敏度调整参数
 }
 
 /*

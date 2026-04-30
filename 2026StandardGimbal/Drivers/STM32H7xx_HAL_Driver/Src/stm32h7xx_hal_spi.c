@@ -1560,7 +1560,7 @@ HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, const uint8_t
       if (initial_RxXferCount > 0UL)
       {
         /* Check the RXP flag */
-           if (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_RXP))
+        if (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_RXP))
         {
           *((uint8_t *)hspi->pRxBuffPtr) = *((__IO uint8_t *)&hspi->Instance->RXDR);
           hspi->pRxBuffPtr += sizeof(uint8_t);

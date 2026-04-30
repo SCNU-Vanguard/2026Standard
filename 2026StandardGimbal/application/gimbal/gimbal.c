@@ -268,12 +268,13 @@ float Get_Chassis_X_Speed(uint8_t mode)
         x_speed = keyboard_speed_x;
         break;
     case GIMBAL_MODE_AUTO:
-        x_speed = vs_aim_packet_from_nuc.vx;
-        if (fabsf(x_speed) > 1e+8f || fabsf(x_speed) < 1e-8f)
-        {
-            x_speed = 0.0f;
-        }
-        // x_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
+        // x_speed = vs_aim_packet_from_nuc.vx;
+        // if (fabsf(x_speed) > 1e+8f || fabsf(x_speed) < 1e-8f)
+        // {
+        //     x_speed = 0.0f;
+        // }
+        x_speed = manual_chassis_speed_x;
+        //x_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
         break;
     case GIMBAL_MODE_MANUAL:
         x_speed = manual_chassis_speed_x;
@@ -309,12 +310,13 @@ float Get_Chassis_Y_Speed(uint8_t mode)
         y_speed = keyboard_speed_y;
         break;
     case GIMBAL_MODE_AUTO:
-        y_speed = vs_aim_packet_from_nuc.vy;
-        if (fabsf(y_speed) > 1e+8f || fabsf(y_speed) < 1e-8f)
-        {
-            y_speed = 0.0f;
-        }
-        // y_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
+        // y_speed = vs_aim_packet_from_nuc.vy;
+        // if (fabsf(y_speed) > 1e+8f || fabsf(y_speed) < 1e-8f)
+        // {
+        //     y_speed = 0.0f;
+        // }
+         y_speed = manual_chassis_speed_y;
+         //y_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
         break;
     case GIMBAL_MODE_MANUAL:
         y_speed = manual_chassis_speed_y;
@@ -357,7 +359,7 @@ float Get_Target_Oemga_Speed(uint8_t mode)
     float omega_speed = 0.0f;
 
     /*变频参数配置*/
-    const float base_omega = 0.6f * 2 * PI; // 2.5f * PI;  // 基础转速，最前面为目标转速，后面2*PI是将转速转换为角速度
+    const float base_omega = 2.5f * PI;  // 基础转速，最前面为目标转速，后面2*PI是将转速转换为角速度
     const float range_omega = 0.5f * PI;    // 变化振幅
     const float frequency = 2.0f;           // 变化频率
     const float dt = 0.001f;                // 控制频率
@@ -391,25 +393,25 @@ float Get_Target_Oemga_Speed(uint8_t mode)
 
         break;
     case GIMBAL_MODE_MANUAL:
-        // if (rc_data->rc.dial)
-        // {
-        //     spin_time += dt;
-        //     omega_speed = base_omega + range_omega * sinf(frequency * spin_time);
-        // }
-        // else
-        // {
-        //     spin_time = 0;
-        //     omega_speed = 0;
-        // }
-
         if (rc_data->rc.dial)
         {
-            omega_speed = base_omega;
+            spin_time += dt;
+            omega_speed = base_omega + range_omega * sinf(frequency * spin_time);
         }
         else
         {
+            spin_time = 0;
             omega_speed = 0;
         }
+
+        // if (rc_data->rc.dial)
+        // {
+        //     omega_speed = base_omega;
+        // }
+        // else
+        // {
+        //     omega_speed = 0;
+        // }
         break;
     case GIMBAL_MODE_STOP:
         omega_speed = 0;
@@ -493,7 +495,7 @@ void Gimbal_State_Machine(void)
     }
     else
         torque_speed_feedforward = -k_forward * (0.1f * 0.65f * 9.8f * cosf(INS.Pitch));
-        
+
     angle_pitch_motor2imu = -gimbal_motor_pitch->measure.rad + angle_pitch_offset;
     angle_yaw_motor2imu = uart2_rx_message.gimbal_angle_yaw_motor2imu;
     angle_pitch = INS.Pitch;

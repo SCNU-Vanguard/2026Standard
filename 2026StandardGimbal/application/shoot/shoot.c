@@ -338,19 +338,19 @@ void Shoot_State_Machine(void)
         init_count++;
         shoot_mode = SHOOT_MODE_STOP;
     }
-    Shoot_Ready();
+    //Shoot_Ready();
 
     if (gimbal_mode)
     {
         switch (shoot_mode)
         {
         case SHOOT_MODE_FIRE:
-            if (fire_ready_flag == 1)
-            {
+//            if (fire_ready_flag == 1)
+//            {
                 uart2_tx_message.shoot_mode = 2;
-            }
-            else
-                uart2_tx_message.shoot_mode = 1;
+//            }
+//            else
+//                uart2_tx_message.shoot_mode = 1;
 
             Shoot_Enable();
             Shoot_SetAll(FRICTION_MOTOR_RPM);

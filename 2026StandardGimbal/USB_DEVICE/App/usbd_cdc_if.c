@@ -30,7 +30,6 @@
 #include "semphr.h"
 #include "VPC.h"
 /* USER CODE END INCLUDE */
-
 /* Private typedef -----------------------------------------------------------*/
 USBD_CDC_LineCodingTypeDef LineCoding =
     {
@@ -44,6 +43,7 @@ USBD_CDC_LineCodingTypeDef LineCoding =
 uint8_t cdc_rx_cache[CDC_RX_CACHE_SIZE];
 uint32_t cdc_rx_len = 50;
 int cnt1 = 0;
+/* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */

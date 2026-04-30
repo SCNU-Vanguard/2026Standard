@@ -28,6 +28,7 @@
 #include "daemon.h"
 #include "INS.h"
 #include "procotol.h"
+#include "SuperCap.h"
 
 #include "bmi088.h"
 #include "ws2812.h"
@@ -64,9 +65,11 @@ static void Frame_Device_Init(void)
 
 	// VOFA_Register(&huart7);
 	// BMI088_Init(&hspi2,0);
- 
+    
 	Chassis_Init();
 	Shoot_Init();
+
+	Super_Power_Init();  // 初始化并自动启用超级电容
 }
 
 static void Frame_Task_Init(void)
