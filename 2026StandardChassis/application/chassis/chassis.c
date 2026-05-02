@@ -24,7 +24,7 @@
 #include "DM_motor.h"
 #include "DJI_motor.h"
 #include "rs485.h"
-#include "referee.h"
+
 #include "user_lib.h"
 
 #include "digital_pid.h"

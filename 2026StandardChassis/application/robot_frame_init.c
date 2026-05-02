@@ -34,7 +34,8 @@
 #include "ws2812.h"
 #include "buzzer.h"
 #include "vofa.h"
-#include "referee.h"
+#include "rm_referee.h"
+#include "referee_task.h"
 #include "ui.h"
 
 #include "bsp_dwt.h"
@@ -45,7 +46,6 @@
 
 float init_time;
 RC_ctrl_t *rc_data;
-Referee_InfoTypedef *referee_data;
 
 static void Frame_MCU_Init(void)
 {
@@ -61,7 +61,7 @@ static void Frame_Device_Init(void)
 
 	// rc_data = Remote_Control_Init(&huart5);
 
-	referee_data = Referee_Init(&huart1);
+	//referee_data = Referee_Init(&huart1);
 
 	// VOFA_Register(&huart7);
 	// BMI088_Init(&hspi2,0);
@@ -92,7 +92,9 @@ static void Frame_Task_Init(void)
 
 	Procotol_Task_Init();
 
-	UI_Task_Init();
+	referee_outer_info = UI_Task_Init(&huart1, &referee_outer_interactive);
+
+	UI_Task_Create_Init();
 }
 
 void Robot_Frame_Init(void)

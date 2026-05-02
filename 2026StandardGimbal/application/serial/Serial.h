@@ -184,7 +184,7 @@ typedef struct
   float vy;        // Y速度
   uint8_t posture; // 姿态指令
   uint8_t circle;  // 旋转姿态指令
-  uint8_t reverse; // 预留位
+  uint8_t scan; // 预留位
   uint16_t crc16;  // 校验值
 } __attribute__((packed)) vs_receive_packet_t;
 

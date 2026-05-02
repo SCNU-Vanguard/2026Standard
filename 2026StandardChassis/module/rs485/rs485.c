@@ -26,7 +26,7 @@ uint8_t uart2_current_byte = 0;
 
 float cnttttt = 0;
 uint8_t rs485_status = 0;
-
+float referee_cnt = 0;
 static uint8_t is_uart2_was_offline = 0;
 static void uart2_append_byte(uint8_t byte)
 {
@@ -161,6 +161,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) // 发送回调函数
         HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_RESET);
         uart2_status = ready_to_receive;
     }
+
+    if (huart == &huart1)
+    {
+        referee_cnt++;
+    }
+
 }
 
 // void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) // 错误回调函数

@@ -16,8 +16,8 @@
 #define K2_6020 1.453e-07f  // k2
 
 
-#define C_3508 0.75f  // 常量  底盘静态功率/电机数量(4个)
-#define C_6020 0.75f  // 常量  底盘静态功率/电机数量(4个)
+#define C_3508 1.25f  // 常量  底盘静态功率/电机数量(4个)
+#define C_6020 1.25f  // 常量  底盘静态功率/电机数量(4个)
 
 void chassis_power_control(void);
 void Power_Control(void);

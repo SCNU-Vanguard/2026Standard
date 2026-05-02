@@ -103,7 +103,7 @@ static float inline Get_Current_Chassis_Speed_X()
 
 static float inline Get_Current_Chassis_Speed_Y()
 {
-	return (vt03_data->key[KEY_PRESS].a - vt03_data->key[KEY_PRESS].d) * chassis_gear_speed[current_gear]; //y方向速度控制
+	return (vt03_data->key[KEY_PRESS].d - vt03_data->key[KEY_PRESS].a) * chassis_gear_speed[current_gear]; //y方向速度控制
 }
 
 static float inline Get_Current_Target_Pitch()

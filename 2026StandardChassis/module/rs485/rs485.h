@@ -11,12 +11,16 @@ typedef struct
     uint8_t frame_header;
     float gimbal_angle_yaw_motor2imu;
     float yaw_vel;
-    uint8_t is_play;
+    uint8_t is_play;      //比赛阶段
     uint16_t game_time;   // 比赛时间
-    uint16_t enemy_score; // 对方胜利点
-    uint16_t own_score;   // 己方胜利点
-    uint16_t own_hp[3];   // 己方血量 0 哨兵 1 英雄 2 步兵
-    uint8_t event_data;    //占领点数据
+    float positon_x;      //机器人自身位置
+    float positon_y;
+    float tar_positon_x;  //目标地点位置（半自动模式使用）
+    float tar_positon_y;
+    uint16_t own_hp;   // 机器人自身血量
+    uint16_t outpost_HP; //己方前哨站血量
+    uint8_t outpost_status;    //前哨站占领状态
+    uint8_t fort_status;    //堡垒占领状态
     uint8_t frame_tailer;
     uint8_t check_sum;
 } __attribute__((packed)) Tx_packed_t;

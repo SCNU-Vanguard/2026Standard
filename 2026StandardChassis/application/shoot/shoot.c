@@ -13,7 +13,8 @@
 
 #include "shoot.h"
 #include "chassis.h"
-#include "referee.h"
+#include "rm_referee.h"
+#include "referee_task.h"
 #include "stdbool.h"
 
 FeederState_e currentState = S_NORMAL;
@@ -39,7 +40,7 @@ uint16_t reverse_cnt = 0;        // 反转时间计数
 uint16_t stop_cnt = 0;           // 停止计数
 static bool heat_locked = false; // 热量锁定标志，初始为false,表示未锁定
 
-extern Referee_InfoTypedef *referee_data;
+
 PID_t chassis_2006_speed_pid = {
     .kp = 80.0f,
     .ki = 15.0f,
@@ -153,8 +154,8 @@ static inline float BulletFreq_to_RadS(float hz) // inline 直接调用内容，
 
 void Update_OverHeated(void)
 {
-    float heat_now = referee_data->Power_Heat_Data.shooter_17mm_1_barrel_heat;   // 当前热量
-    float heat_limit = referee_data->Game_Robot_state.shooter_barrel_heat_limit; // 热量上限
+    float heat_now = referee_outer_info->PowerHeatData.shooter_17mm_barrel_heat;   // 当前热量
+    float heat_limit = referee_outer_info->RobotPerformance.shooter_barrel_heat_limit; // 热量上限
 
     if (heat_now > heat_limit - HEAT_SAFETY_MARGIN_HIGH)
     {

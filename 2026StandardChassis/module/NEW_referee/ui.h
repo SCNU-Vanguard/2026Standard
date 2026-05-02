@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "ui_interface.h"
+#include "sentry_info.h"
 
 
 
@@ -19,7 +19,7 @@ typedef struct
 	
 }__attribute__((packed)) ui_cmd_t;
 
-void UI_Task_Init(void);
+void UI_Task_Create_Init(void);
 
 
 

@@ -27,7 +27,7 @@
 // #define RC_SENSITIVITY_Y 0.002f // 遥控器Y轴速度灵敏度（靶车模式）
 
 // 扫描相关参数
-#define SCAN_STEP_YAW 0.003f
+#define SCAN_STEP_YAW 0.002f
 
 #include "gimbal_task.h"
 #include "gimbal.h"
@@ -66,6 +66,8 @@ float torque_speed_feedforward = 0;
 
 // 扫描相关参数
 uint8_t auto_mode_last = 0;
+uint32_t scan_ready_time = 0;
+
 float scan_time = 0.0f;
 
 PID_t gimbal_6020_angle_pid = {
@@ -268,13 +270,13 @@ float Get_Chassis_X_Speed(uint8_t mode)
         x_speed = keyboard_speed_x;
         break;
     case GIMBAL_MODE_AUTO:
-        // x_speed = vs_aim_packet_from_nuc.vx;
-        // if (fabsf(x_speed) > 1e+8f || fabsf(x_speed) < 1e-8f)
-        // {
-        //     x_speed = 0.0f;
-        // }
-        x_speed = manual_chassis_speed_x;
-        //x_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
+        x_speed = vs_aim_packet_from_nuc.vx;
+        if (fabsf(x_speed) > 1e+8f || fabsf(x_speed) < 1e-8f)
+        {
+            x_speed = 0.0f;
+        }
+        // x_speed = manual_chassis_speed_x;
+        // x_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
         break;
     case GIMBAL_MODE_MANUAL:
         x_speed = manual_chassis_speed_x;
@@ -310,13 +312,13 @@ float Get_Chassis_Y_Speed(uint8_t mode)
         y_speed = keyboard_speed_y;
         break;
     case GIMBAL_MODE_AUTO:
-        // y_speed = vs_aim_packet_from_nuc.vy;
-        // if (fabsf(y_speed) > 1e+8f || fabsf(y_speed) < 1e-8f)
-        // {
-        //     y_speed = 0.0f;
-        // }
-         y_speed = manual_chassis_speed_y;
-         //y_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
+        y_speed = vs_aim_packet_from_nuc.vy;
+        if (fabsf(y_speed) > 1e+8f || fabsf(y_speed) < 1e-8f)
+        {
+            y_speed = 0.0f;
+        }
+        // y_speed = manual_chassis_speed_y;
+        // y_speed = 0.0f; // 自瞄模式不控制底盘速度，由底盘手动控制
         break;
     case GIMBAL_MODE_MANUAL:
         y_speed = manual_chassis_speed_y;
@@ -360,9 +362,9 @@ float Get_Target_Oemga_Speed(uint8_t mode)
 
     /*变频参数配置*/
     const float base_omega = 2.5f * PI;  // 基础转速，最前面为目标转速，后面2*PI是将转速转换为角速度
-    const float range_omega = 0.5f * PI;    // 变化振幅
-    const float frequency = 2.0f;           // 变化频率
-    const float dt = 0.001f;                // 控制频率
+    const float range_omega = 0.5f * PI; // 变化振幅
+    const float frequency = 2.0f;        // 变化频率
+    const float dt = 0.001f;             // 控制频率
 
     switch (mode)
     {
@@ -561,21 +563,24 @@ void Gimbal_State_Machine(void)
         break;
     case GIMBAL_MODE_AUTO:
         // imu控制
-        if (vs_aim_packet_from_nuc.mode == 0) // 丢失目标，进入扫描模式
+        if (vs_aim_packet_from_nuc.mode == 0 && vs_aim_packet_from_nuc.scan == 1) // 丢失目标，进入扫描模式
         {
-            // if (auto_mode_last == 1 || auto_mode_last == 2)
-            // {
-            //     scan_time = 0.0f;
-            // }
-            // target_angle_yaw -= SCAN_STEP_YAW;
-            // scan_time += 0.005f;
-            // target_angle_pitch = 0.2f * sinf(scan_time) + 0.08f;
-            // target_angle_pitch_temp = target_angle_pitch;
-            target_angle_pitch -= rc_data->rc.rocker_r1 * 0.0000025f;
-            target_angle_pitch_temp = Delta_Target_Angle_Control(0.007f);
-            // target_angle_pitch_temp = Value_Limit(target_angle_pitch_temp, PITCH_UP_LIMIT, PITCH_DOWN_LIMIT);
-            //  target_angle_pitch = target_angle_pitch_temp;
-            target_angle_yaw -= rc_data->rc.rocker_r_ * 0.00001f;
+            if (auto_mode_last == 1 || auto_mode_last == 2)
+                {
+                    scan_time = 0.0f;
+                }
+            if (scan_ready_time > 1500)
+            { 
+                target_angle_yaw -= SCAN_STEP_YAW;
+                scan_time += 0.005f;
+                target_angle_pitch = 0.2f * sinf(scan_time) - 0.02f;
+                target_angle_pitch_temp = Delta_Target_Angle_Control(0.003f);
+                //target_angle_pitch = target_angle_pitch_temp;
+            }
+            else
+            {
+                scan_ready_time++;
+            }
         }
         else if (vs_aim_packet_from_nuc.mode == 1 || vs_aim_packet_from_nuc.mode == 2) // 识别到目标，进入自瞄模式
         {
@@ -585,6 +590,7 @@ void Gimbal_State_Machine(void)
             target_angle_pitch_temp = Delta_Target_Angle_Control(0.003f);
 
             target_angle_yaw = vs_aim_packet_from_nuc.yaw;
+            scan_ready_time = 0;
             //}
         }
         auto_mode_last = vs_aim_packet_from_nuc.mode;
