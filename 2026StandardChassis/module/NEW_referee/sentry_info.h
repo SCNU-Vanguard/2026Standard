@@ -11,14 +11,14 @@
 
 typedef struct
 {
-    uint8_t revive_confirm : 1;   // bit 0：确认复活
-    uint8_t exch_revive : 1;      // bit 1：确认兑换立即复活
+    uint32_t revive_confirm : 1;   // bit 0：确认复活
+    uint32_t exch_revive : 1;      // bit 1：确认兑换立即复活
     uint32_t exch_bullet : 11;     // bit 2-12：兑换发弹量值 (单调递增)
     uint32_t exch_bullet_cnt : 4;  // bit 13-16：远程兑换发弹量次数 (单调递增)
     uint32_t exch_blood_cnt : 4;   // bit 17-20：远程兑换血量次数 (单调递增)
-    uint8_t posture : 2;          // bit 21-22：姿态 (1进攻, 2防御, 3移动)
+    uint32_t posture : 2;          // bit 21-22：姿态 (1进攻, 2防御, 3移动)
     uint32_t buff_confirm : 1;     // bit 23：确认使能量机关进入正在激活状态
-    uint16_t reserved : 8;         // bit 24-31：保留位
+    uint32_t reserved : 8;         // bit 24-31：保留位
 }__attribute__((packed))sentry_msg_t;
 
 typedef struct {
@@ -84,7 +84,7 @@ extern sentry_get_info_t sentry_get_info; // 哨兵获取信息结构体实例
 extern eventdata_get_info_t event_get_info; // 场地事件数据获取结构体实例
 
 extern void Sentrycmd_To_Referee();
-extern void Sentry_Send_Decision(sentry_cmd_t *msg_cmd, sentry_msg_t *msg);
+extern void Sentry_Send_Decision(sentry_msg_t *msg);
 extern void Referee_Data_Update();
 extern void Sentry_Unpacked_Msg(sentry_get_info_t *get_info);
 extern void EventData_Unpacked_Msg(eventdata_get_info_t *event_data);

@@ -412,7 +412,7 @@ typedef enum
   UI_Data_ID_Draw5 = 0x103,
   UI_Data_ID_Draw7 = 0x104,
   UI_Data_ID_DrawChar = 0x110,
-  Sentry_Msg_ID = 0x120,
+  Sentry_Msg_ID = 0x0120,
   /* 自定义交互数据部分 */
   Communicate_Data_ID = 0x0200,
 

@@ -12,20 +12,20 @@ uint16_t ui_self_id = 107; // 红方哨兵7，蓝方哨兵107
 // 为了使消息能够发送给裁判系统，必须要自定义ui_self_id变量（该变量也可以使用其他代码从裁判系统读取后由程序修改）
 
 sentry_msg_t sentry_msg;             // 哨兵具体指令结构体实例
-sentry_cmd_t sentinel_decision;      // 哨兵自主决策通信指令整体结构体实例
+sentry_cmd_t sentinel_decision_out;  // 哨兵自主决策通信指令整体结构体实例
 sentry_get_info_t sentry_get_info;   // 哨兵获取信息结构体实例
 eventdata_get_info_t event_get_info; // 场地事件数据获取结构体实例
-void Sentry_Msg_Update(sentry_msg_t *msg)
-{
-   // 此处根据实际情况更新sentry_msg的字段值
-   msg->revive_confirm = 0; // 确认复活
-   msg->exch_revive = 0;    // 兑换立即复活
 
-   msg->exch_bullet = 0;     // 设置发弹量
-   msg->exch_bullet_cnt = 0; // 请求远程兑换发弹量次数
-   msg->exch_blood_cnt = 0;  // 请求远程兑换血量次数
-   msg->posture = 2;         // uart2_rx_message.posture;         // 设置姿态
-   msg->buff_confirm = 0;    // 确认使能量机关进入正在激活状态
+void Sentry_Msg_Update(sentry_msg_t *msg, sentry_get_info_t *get_info)
+{
+
+   msg->revive_confirm = 1;                 // 确认复活
+   msg->exch_revive = 0;                    // 兑换立即复活
+   msg->exch_bullet = 0;                    // 设置发弹量
+   msg->exch_bullet_cnt = 0;                // 请求远程兑换发弹量次数
+   msg->exch_blood_cnt = 0;                 // 请求远程兑换血量次数
+   msg->posture = uart2_rx_message.posture; // 设置姿态
+   msg->buff_confirm = 0;                   // 确认使能量机关进入正在激活状态
 }
 
 /* 32位指令如下：
@@ -53,33 +53,32 @@ void Sentry_Cmd_Pack(sentry_cmd_t *msg_cmd, sentry_msg_t *msg)
    msg_cmd->sentry_cmd = cmd;
 }
 
-void Sentry_Send_Decision(sentry_cmd_t *msg_cmd, sentry_msg_t *msg)
+void Sentry_Send_Decision(sentry_msg_t *msg)
 {
-   uint8_t temp_datalength = Interactive_Data_LEN_Head + Sentry_Msg_LEN; // 计算交互数据长度
-   msg_cmd->header.SOF = 0xA5;
-   msg_cmd->header.length = temp_datalength;
-   msg_cmd->header.seq = seq;
-   msg_cmd->header.crc8 = Get_CRC8_Check_Sum((uint8_t *)&msg_cmd, LEN_CRC8, 0xFF);
-   msg_cmd->cmd_id = ID_student_interactive; // 机器人数据交互主ID
-   msg_cmd->sub_id = Sentry_Msg_ID;          // 哨兵指令子ID
-   msg_cmd->send_id = ui_self_id;
-   msg_cmd->recv_id = 0x8080; // 给裁判系统
+   static sentry_cmd_t sentinel_decision;
+   uint16_t temp_datalength = Interactive_Data_LEN_Head + Sentry_Msg_LEN; // 计算交互数据长度
+   sentinel_decision.header.SOF = 0xA5;
+   sentinel_decision.header.length = temp_datalength;
+   sentinel_decision.header.seq = seq;
+   sentinel_decision.header.crc8 = Get_CRC8_Check_Sum((uint8_t *)&sentinel_decision, LEN_CRC8, 0xFF);
+   sentinel_decision.cmd_id = ID_student_interactive; // 机器人数据交互主ID
+   sentinel_decision.sub_id = Sentry_Msg_ID;          // 哨兵指令子ID
+   sentinel_decision.send_id = ui_self_id;
+   sentinel_decision.recv_id = 0x8080; // 给裁判系统服务器
    // 哨兵补充结构体对所需指令设置--uint32_t sentry_cmd
-   Sentry_Cmd_Pack(msg_cmd, msg); // 更新Pack据到sentry_cmd字段
+   Sentry_Cmd_Pack(&sentinel_decision, msg); // 更新Pack据到sentry_cmd字段
    // msg_cmd->sentry_cmd = *(uint32_t *)&sentry_msg; //设置对应指令位
-   msg_cmd->crc16 = Get_CRC16_Check_Sum((uint8_t *)&msg_cmd, LEN_HEADER + LEN_CMDID + temp_datalength, 0xFFFF);
+   sentinel_decision.crc16 = Get_CRC16_Check_Sum((uint8_t *)&sentinel_decision, LEN_HEADER + LEN_CMDID + temp_datalength, 0xFFFF);
    Referee_Send((uint8_t *)&sentinel_decision, LEN_HEADER + LEN_CMDID + temp_datalength + LEN_TAIL);
    seq++;
 }
 
-
 // 发送数据给裁判系统的函数，调用该函数即可将数据发送给裁判系统
 void Sentrycmd_To_Referee()
 {
-   Sentry_Msg_Update(&sentry_msg); // 根据实际情况更新sentry_msg的字段值
-   Sentry_Send_Decision(&sentinel_decision, &sentry_msg);
+   Sentry_Msg_Update(&sentry_msg, &sentry_get_info); // 根据实际情况更新sentry_msg的字段值
+   Sentry_Send_Decision(&sentry_msg);
 }
-
 
 // 哨兵信息解包函数,从裁判系统接收的数据中提取哨兵相关信息并存储到sentry_get_info结构体实例中
 void Sentry_Unpacked_Msg(sentry_get_info_t *get_info)
@@ -102,7 +101,7 @@ void Sentry_Unpacked_Msg(sentry_get_info_t *get_info)
    get_info->can_activate_buff = (info2 >> 14) & 0x01;
 }
 
- //从裁判系统数据中解包出场地事件相关信息到event_get_info结构体
+// 从裁判系统数据中解包出场地事件相关信息到event_get_info结构体
 void EventData_Unpacked_Msg(eventdata_get_info_t *event_data)
 {
    uint8_t raw_event = referee_outer_info->EventData.event_data;
@@ -123,19 +122,19 @@ void EventData_Unpacked_Msg(eventdata_get_info_t *event_data)
    // 增益点占领状态
    event_data->fort_status = (raw_event >> 25) & 0x03;
    event_data->outpost_status = (raw_event >> 27) & 0x03;
-   event_data->base_buff_zone = (raw_event >> 29) & 0x01;
+   event_data->base_status = (raw_event >> 29) & 0x01;
 }
 
 void Referee_Data_Update() // 更新要传给上位机的裁判系统数据
 {
-   uart2_tx_message.game_time = referee_outer_info->GameState.stage_remain_time; // 获取当前阶段剩余时间
-   uart2_tx_message.is_play = referee_outer_info->GameState.game_progress;       // 当前比赛阶段
-   uart2_tx_message.own_hp = referee_outer_info->RobotPerformance.current_HP;    // 获取自身机器人HP
-   uart2_tx_message.outpost_HP = referee_outer_info->GameRobotHP.robot_outpost_HP; // 获取前哨站HP
-   uart2_tx_message.outpost_status = event_get_info.outpost_status; // 获取前哨站占领状态
-   uart2_tx_message.fort_status = event_get_info.fort_status; // 获取堡垒占领状态
-   uart2_tx_message.position_x = referee_outer_info->GameRobotPos.x; // 获取机器人位置x
-   uart2_tx_message.position_y = referee_outer_info->GameRobotPos.y; // 获取机器人位置y 
+   uart2_tx_message.game_time = referee_outer_info->GameState.stage_remain_time;       // 获取当前阶段剩余时间
+   uart2_tx_message.is_play = referee_outer_info->GameState.game_progress;             // 当前比赛阶段
+   uart2_tx_message.own_hp = referee_outer_info->RobotPerformance.current_HP;          // 获取自身机器人HP
+   uart2_tx_message.outpost_HP = referee_outer_info->GameRobotHP.ally_outpost_HP;      // 获取前哨站HP
+   uart2_tx_message.outpost_status = event_get_info.outpost_status;                    // 获取前哨站占领状态
+   uart2_tx_message.fort_status = event_get_info.fort_status;                          // 获取堡垒占领状态
+   uart2_tx_message.position_x = referee_outer_info->GameRobotPos.x;                   // 获取机器人位置x
+   uart2_tx_message.position_y = referee_outer_info->GameRobotPos.y;                   // 获取机器人位置y
    uart2_tx_message.tar_position_x = referee_outer_info->MapCommand.target_position_x; // 目标位置x（半自动模式使用）
    uart2_tx_message.tar_position_y = referee_outer_info->MapCommand.target_position_y; // 目标位置y（半自动模式使用）
 }

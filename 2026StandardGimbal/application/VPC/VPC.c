@@ -46,18 +46,20 @@ void VPC_UpdatePackets(void)
   vs_aim_packet_to_nuc.pitch = INS.Pitch;
   vs_aim_packet_to_nuc.pitch_vel = gimbal_motor_pitch->measure.speed; // 云台pitch轴角速度 rad/s
 
-  vs_aim_packet_to_nuc.is_play = uart2_rx_message.is_play;         // uart2_rx_message.is_play;
-  vs_aim_packet_to_nuc.game_time = uart2_rx_message.game_time;     //  uart2_rx_message.game_time; // 当前阶段剩余时间
-  vs_aim_packet_to_nuc.enemy_score = uart2_rx_message.enemy_score; // 对方胜利点
-  vs_aim_packet_to_nuc.own_score = uart2_rx_message.own_score;     // 己方胜利点
+  vs_aim_packet_to_nuc.is_play = uart2_rx_message.is_play;     // uart2_rx_message.is_play;
+  vs_aim_packet_to_nuc.game_time = uart2_rx_message.game_time; //  uart2_rx_message.game_time; // 当前阶段剩余时间
 
-  vs_aim_packet_to_nuc.own_hp[0] = uart2_rx_message.own_hp[0]; // 己方血量 0 哨兵 1 英雄 2 步兵
-  vs_aim_packet_to_nuc.own_hp[1] = uart2_rx_message.own_hp[1];
-  vs_aim_packet_to_nuc.own_hp[2] = uart2_rx_message.own_hp[2];
-  vs_aim_packet_to_nuc.event_data = uart2_rx_message.event_data;
+  vs_aim_packet_to_nuc.positon_x = uart2_rx_message.positon_x; // 机器人自身位置
+  vs_aim_packet_to_nuc.positon_y = uart2_rx_message.positon_y;
+  vs_aim_packet_to_nuc.tar_positon_x = uart2_rx_message.tar_positon_x; // 目标地点位置（半自动模式使用）
+  vs_aim_packet_to_nuc.tar_positon_y = uart2_rx_message.tar_positon_y;
 
-  vs_aim_packet_to_nuc.bullet_speed = BULLET_V; // 现在为设置弹速，不是实际弹速
-  vs_aim_packet_to_nuc.bullet_count = 0;        // 未定
+  vs_aim_packet_to_nuc.own_hp = uart2_rx_message.own_hp;                 // 己方血量
+  vs_aim_packet_to_nuc.outpost_HP = uart2_rx_message.outpost_HP;         // 己方前哨站血量
+  vs_aim_packet_to_nuc.outpost_status = uart2_rx_message.outpost_status; // 前哨站占领状态
+  vs_aim_packet_to_nuc.fort_status = uart2_rx_message.fort_status;       // 堡垒占领状态
+  vs_aim_packet_to_nuc.bullet_speed = BULLET_V;                          // 现在为设置弹速，不是实际弹速
+  vs_aim_packet_to_nuc.bullet_count = 0;                                 // 未定
 }
 
 /*根据帧头选择对应的数据处理*/

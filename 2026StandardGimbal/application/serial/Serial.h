@@ -160,12 +160,16 @@ typedef struct
   uint16_t bullet_count; // 子弹累计发射次数
   uint8_t is_play;       // 当前比赛阶段
   uint16_t game_time;    // 比赛阶段剩余时间
-  uint16_t enemy_score;  // 对方胜利点
-  uint16_t own_score;    // 己方胜利点
-  uint16_t own_hp[3];    // 己方血量 0 哨兵 1 英雄 2 步兵
-  uint8_t event_data;    // 占领点状态
-  uint8_t reverse;       // 预留位
-  uint16_t crc16;        // 校验值
+  float positon_x;       // 机器人自身位置
+  float positon_y;
+  float tar_positon_x; // 目标地点位置（半自动模式使用）
+  float tar_positon_y;
+  uint16_t own_hp;        // 机器人自身血量
+  uint16_t outpost_HP;    // 己方前哨站血量
+  uint8_t outpost_status; // 前哨站占领状态
+  uint8_t fort_status;    // 堡垒占领状态
+  uint8_t reverse;        // 预留位
+  uint16_t crc16;         // 校验值
 
 } __attribute__((packed)) vs_send_packet_t;
 
@@ -184,7 +188,7 @@ typedef struct
   float vy;        // Y速度
   uint8_t posture; // 姿态指令
   uint8_t circle;  // 旋转姿态指令
-  uint8_t scan; // 预留位
+  uint8_t scan;    // 预留位
   uint16_t crc16;  // 校验值
 } __attribute__((packed)) vs_receive_packet_t;
 

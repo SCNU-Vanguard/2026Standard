@@ -13,10 +13,10 @@ typedef struct
     float yaw_vel;
     uint8_t is_play;      //比赛阶段
     uint16_t game_time;   // 比赛时间
-    float positon_x;      //机器人自身位置
-    float positon_y;
-    float tar_positon_x;  //目标地点位置（半自动模式使用）
-    float tar_positon_y;
+    float position_x;      //机器人自身位置
+    float position_y;
+    float tar_position_x;  //目标地点位置（半自动模式使用）
+    float tar_position_y;
     uint16_t own_hp;   // 机器人自身血量
     uint16_t outpost_HP; //己方前哨站血量
     uint8_t outpost_status;    //前哨站占领状态

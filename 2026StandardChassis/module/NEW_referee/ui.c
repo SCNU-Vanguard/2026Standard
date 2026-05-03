@@ -25,7 +25,7 @@
 #include "referee_task.h"
 #include "robot_frame_init.h"
 
-#define UI_TASK_PERIOD 10 // ms
+#define UI_TASK_PERIOD 100 // ms
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t ui_diff;
@@ -72,6 +72,7 @@ void UI_Task(void *argument) // 此处根据自己代码的结构体自行更改
 		Sentry_Unpacked_Msg(&sentry_get_info);
 		EventData_Unpacked_Msg(&event_get_info);
 		Referee_Data_Update();
+		
 		Sentrycmd_To_Referee();
 		ui_diff = osKernelGetTickCount() - time;
 		time = osKernelGetTickCount();

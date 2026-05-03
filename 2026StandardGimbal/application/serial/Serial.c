@@ -198,12 +198,8 @@ void VS_Send_Packet_Init(vs_send_packet_t *send_packet)
     send_packet->bullet_count = 0;
     send_packet->is_play = 0;
     send_packet->game_time = 0.0f;
-    send_packet->enemy_score = 0.0f;
-    send_packet->own_score = 0.0f;
-    send_packet->own_hp[0] = 0.0f;
-    send_packet->own_hp[1] = 0.0f;
-    send_packet->own_hp[2] = 0.0f;
-    send_packet->event_data = 0;
+    send_packet->own_hp = 0.0f;
+
 }
 
 /* 初始化接收自上位机的视觉数据包 */
