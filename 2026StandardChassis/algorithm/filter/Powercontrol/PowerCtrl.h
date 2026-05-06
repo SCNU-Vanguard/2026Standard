@@ -11,7 +11,7 @@
 #define K1_3508 2.0326e-07  // k1
 #define K2_3508 1.453e-07f  // k2
 
-#define K0_6020 1.996889994e-06f
+#define K0_6020 1.996889994e-06f  // k0
 #define K1_6020 2.0326e-07  // k1
 #define K2_6020 1.453e-07f  // k2
 
@@ -19,12 +19,17 @@
 #define C_3508 1.25f  // 常量  底盘静态功率/电机数量(4个)
 #define C_6020 1.25f  // 常量  底盘静态功率/电机数量(4个)
 
+extern float chassis_max_power;
+
 void chassis_power_control(void);
-void Power_Control(void);
+//void Power_Control(void);
+
 typedef enum
 {
 	SUPERCAP_CONTROL = 0,
 	CODE_CONTROL = 1,
 } power_control_mode_e;//功率控制模式
+
+extern power_control_mode_e Power_Control_Mode;
 
 #endif

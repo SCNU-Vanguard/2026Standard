@@ -146,6 +146,9 @@ typedef struct
   uint16_t checksum;
 } __attribute__((packed)) nv_receive_packet_t;
 
+
+
+
 /*哨兵的发送结构体aim to nuc*/
 typedef struct
 {
@@ -156,8 +159,8 @@ typedef struct
   float yaw_vel;
   float pitch;
   float pitch_vel;
-  float bullet_speed;
-  uint16_t bullet_count; // 子弹累计发射次数
+  float bullet_speed;     // 子弹速度（单位m/s）
+  uint16_t bullet_allowance; // 剩余可发射弹丸数量
   uint8_t is_play;       // 当前比赛阶段
   uint16_t game_time;    // 比赛阶段剩余时间
   float positon_x;       // 机器人自身位置
@@ -165,7 +168,7 @@ typedef struct
   float tar_positon_x; // 目标地点位置（半自动模式使用）
   float tar_positon_y;
   uint16_t own_hp;        // 机器人自身血量
-  uint16_t outpost_HP;    // 己方前哨站血量
+  uint16_t outpost_hp;    // 己方前哨站血量
   uint8_t outpost_status; // 前哨站占领状态
   uint8_t fort_status;    // 堡垒占领状态
   uint8_t reverse;        // 预留位
@@ -187,10 +190,13 @@ typedef struct
   float vx;        // X速度
   float vy;        // Y速度
   uint8_t posture; // 姿态指令
-  uint8_t circle;  // 旋转姿态指令
-  uint8_t scan;    // 预留位
+  uint8_t circle;  // 旋转指令
+  uint8_t scan;    // 扫描指令
+  uint8_t reverse; // 预留位
   uint16_t crc16;  // 校验值
 } __attribute__((packed)) vs_receive_packet_t;
+
+
 
 /*单包发送结构体*/
 typedef struct

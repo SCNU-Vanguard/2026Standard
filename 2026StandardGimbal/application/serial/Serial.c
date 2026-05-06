@@ -195,7 +195,7 @@ void VS_Send_Packet_Init(vs_send_packet_t *send_packet)
     send_packet->pitch = 0.0f;
     send_packet->pitch_vel = 0.0f;
     send_packet->bullet_speed = 0;
-    send_packet->bullet_count = 0;
+    send_packet->bullet_allowance = 0;
     send_packet->is_play = 0;
     send_packet->game_time = 0.0f;
     send_packet->own_hp = 0.0f;

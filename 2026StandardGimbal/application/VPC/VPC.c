@@ -59,7 +59,7 @@ void VPC_UpdatePackets(void)
   vs_aim_packet_to_nuc.outpost_status = uart2_rx_message.outpost_status; // 前哨站占领状态
   vs_aim_packet_to_nuc.fort_status = uart2_rx_message.fort_status;       // 堡垒占领状态
   vs_aim_packet_to_nuc.bullet_speed = BULLET_V;                          // 现在为设置弹速，不是实际弹速
-  vs_aim_packet_to_nuc.bullet_count = 0;                                 // 未定
+  vs_aim_packet_to_nuc.bullet_allowance = uart2_rx_message.bullet_allowance; // 剩余可发射弹丸数
 }
 
 /*根据帧头选择对应的数据处理*/

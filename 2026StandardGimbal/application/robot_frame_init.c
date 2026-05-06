@@ -29,7 +29,6 @@
 #include "INS.h"
 #include "procotol.h"
 #include "VPC.h"
-#include "referee.h"
 
 #include "bmi088.h"
 #include "ws2812.h"
@@ -45,7 +44,6 @@
 
 float init_time;
 RC_ctrl_t *rc_data;
-Referee_PicInfoTypedef *Referee_Picdata;
 VT03_ctrl_t *vt03_data;
 
 static void Frame_MCU_Init(void)

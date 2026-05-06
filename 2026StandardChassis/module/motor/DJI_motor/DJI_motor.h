@@ -38,7 +38,7 @@ typedef struct
     uint16_t offset_ecd;
     float angle;   // 角度
     float rad;     // 弧度
-    float speed;            // round/s
+    float speed;            // rad/s
     float angle_single_round; // 单圈角度
     float speed_aps;          // 角速度,单位为:度/秒
     int16_t real_current;     // 实际电流

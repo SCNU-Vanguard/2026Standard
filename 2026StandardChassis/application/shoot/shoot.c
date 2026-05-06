@@ -27,19 +27,18 @@ FeederState_e currentState = S_NORMAL;
 #define SHOOT_SPEED_STALL 2.0f      // 堵转速度
 #define REVERSE_RADS -12.0f         // 反转速度
 #define SHOOT_TIME_STALL 900        // 堵转时间
-#define SHOOT_TIME_REVERSING 950     // 反转时间
+#define SHOOT_TIME_REVERSING 950    // 反转时间
 #define SHOOT_TIME_STOP 1200        // 停转时间
 /*热量控制参数*/
 #define HEAT_SAFETY_MARGIN_HIGH 30.0f // 热量上限安全余量
 #define HEAT_SAFETY_MARGIN_LOW 90.0f  // 热量下限安全余量
 
-float shoot_hz = 5.0f; // 射击频率（发/秒）
+float shoot_hz = 10.0f; // 射击频率（发/秒）
 uint16_t target_shoot_rads = 0;
 uint16_t stall_cnt = 0;          // 堵转时间计数
 uint16_t reverse_cnt = 0;        // 反转时间计数
 uint16_t stop_cnt = 0;           // 停止计数
 static bool heat_locked = false; // 热量锁定标志，初始为false,表示未锁定
-
 
 PID_t chassis_2006_speed_pid = {
     .kp = 80.0f,
@@ -154,7 +153,7 @@ static inline float BulletFreq_to_RadS(float hz) // inline 直接调用内容，
 
 void Update_OverHeated(void)
 {
-    float heat_now = referee_outer_info->PowerHeatData.shooter_17mm_barrel_heat;   // 当前热量
+    float heat_now = referee_outer_info->PowerHeatData.shooter_17mm_barrel_heat;       // 当前热量
     float heat_limit = referee_outer_info->RobotPerformance.shooter_barrel_heat_limit; // 热量上限
 
     if (heat_now > heat_limit - HEAT_SAFETY_MARGIN_HIGH)
@@ -202,7 +201,7 @@ float Stall_Control_Loop(float target_rads)
             Shoot_Stop();
             stop_cnt++;
             return 0.0f; // 停止状态，目标转速为0
-        } 
+        }
         else
             reverse_cnt++;
 
@@ -229,23 +228,13 @@ void Shoot_State_Machine(void)
         init_count++;
         shoot_mode = SHOOT_MODE_STOP;
     }
- 
-    // Update_OverHeated(); // 更新过热状态
-    // if (heat_locked == true && shoot_mode == SHOOT_MODE_FIRE)
-    // {
-    //     shoot_mode = SHOOT_MODE_READY;
-    // }
 
-//    if(gimbal_motor_yaw ->receive_data.position > 1.88f || gimbal_motor_yaw ->receive_data.position < 1.39f)
-//    {
-//        shoot_mode = SHOOT_MODE_READY;
-//    }
+    Update_OverHeated(); // 更新过热状态,控制射击热量，避免过热
+    if (heat_locked == true && shoot_mode == SHOOT_MODE_FIRE)
+    {
+        shoot_mode = SHOOT_MODE_READY;
+    }
 
-
-    //  if(gimbal_angle_yaw_motor2imu > 0.25f || gimbal_angle_yaw_motor2imu < -2.5f)
-    // {
-    //     shoot_mode = SHOOT_MODE_READY;
-    // }
     if (chassis_mode)
     {
         switch (shoot_mode)

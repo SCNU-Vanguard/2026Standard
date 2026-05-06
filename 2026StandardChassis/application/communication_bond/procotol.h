@@ -24,7 +24,5 @@ typedef struct
     /* data */
 }__attribute__((packed))procotol_cmd_t;
 
-void VOFA_Display_IMU(void);
-void VOFA_Display_Pitch(void);
-
+void SuperCap_PowerControl_Update(void);
 #endif /* __PROCOTOL_H__ */

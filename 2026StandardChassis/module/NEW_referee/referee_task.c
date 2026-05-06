@@ -17,7 +17,7 @@
 #include "shoot.h"
 #include "rs485.h"
 
-#include "SuperCap.h"
+#include "super_cap.h"
 #include "remote_control.h"
 
 extern RC_ctrl_t *rc_data;
